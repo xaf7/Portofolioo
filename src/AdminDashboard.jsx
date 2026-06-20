@@ -42,6 +42,7 @@ export default function AdminDashboard({
     speed: "98/100",
     status: "Production Ready",
     color: "from-blue-600 to-indigo-700",
+    image_url: "", // Tambahkan ini agar bisa menampung URL foto web projek
   });
 
   const [testiForm, setTestiForm] = useState({
@@ -75,6 +76,7 @@ export default function AdminDashboard({
       speed: projForm.speed,
       status: projForm.status,
       color: projForm.color,
+      image_url: projForm.image_url, // Kirimkan data URL foto ke database
     };
 
     if (editingProject) {
@@ -123,6 +125,7 @@ export default function AdminDashboard({
       speed: "98/100",
       status: "Production Ready",
       color: "from-blue-600 to-indigo-700",
+      image_url: "", // Reset field foto projek setelah submit
     });
   };
 
@@ -137,6 +140,7 @@ export default function AdminDashboard({
       speed: p.speed || "98/100",
       status: p.status || "Production Ready",
       color: p.color || "from-blue-600 to-indigo-700",
+      image_url: p.image_url || "", // Ambil URL foto yang ada saat mode edit
     });
   };
 
@@ -307,7 +311,6 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Menggunakan fungsi toggle global agar sinkron dengan App.jsx */}
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-lg border transition-all ${isDarkMode ? "border-[#434460] text-amber-400 bg-slate-800" : "border-slate-200 text-slate-600 bg-slate-50"}`}
@@ -444,6 +447,23 @@ export default function AdminDashboard({
                     className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                   />
                 </div>
+
+                {/* FIELD INPUT URL FOTO WEB UNTUK PROJEK KERJA */}
+                <div>
+                  <label className="block text-slate-400 mb-1 flex items-center gap-1">
+                    <ImageIcon size={12} /> URL Sampul / Foto Web Projek
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/foto-web-projek.png"
+                    value={projForm.image_url}
+                    onChange={(e) =>
+                      setProjForm({ ...projForm, image_url: e.target.value })
+                    }
+                    className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-slate-400 mb-1">
@@ -515,6 +535,7 @@ export default function AdminDashboard({
                           speed: "98/100",
                           status: "Production Ready",
                           color: "from-blue-600 to-indigo-700",
+                          image_url: "",
                         });
                       }}
                       className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg"
@@ -536,11 +557,24 @@ export default function AdminDashboard({
                       key={p.id}
                       className={`p-3 rounded-lg border flex items-center justify-between text-[12px] ${isDarkMode ? "bg-[#181924] border-[#2d3042]" : "bg-[#f5f5f9]"}`}
                     >
-                      <div>
-                        <span className="font-bold block">{p.title}</span>
-                        <span className="text-[10px] text-slate-400">
-                          {p.category}
-                        </span>
+                      <div className="flex items-center gap-3 truncate max-w-[80%]">
+                        {/* Menampilkan Preview Kecil Foto Web Projek jika ada */}
+                        {p.image_url && (
+                          <img
+                            src={p.image_url}
+                            alt=""
+                            className="w-10 h-7 rounded border object-cover shrink-0 bg-slate-200"
+                            onError={(e) => (e.target.style.display = "none")}
+                          />
+                        )}
+                        <div className="truncate">
+                          <span className="font-bold block truncate">
+                            {p.title}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {p.category}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
