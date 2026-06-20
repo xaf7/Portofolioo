@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Mengatasi margin default browser agar layout benar-benar full */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Animasi Marquee Bergerak untuk Ticker Text */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.cursor-blink {
+  border-right: 3px solid #3b82f6; /* Warna biru pengetikan */
+  animation: blink 0.75s step-end infinite;
+}
