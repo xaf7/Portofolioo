@@ -9,7 +9,11 @@ body {
   overflow-x: hidden;
 }
 
-/* Animasi Marquee Bergerak untuk Ticker Text */
+/* ==========================================================
+   ANIMASI MARQUEE (LOOPS)
+   ========================================================== */
+
+/* Keyframes Utama untuk Pergeseran Horizontal Kiri */
 @keyframes marquee {
   0% {
     transform: translateX(0%);
@@ -19,9 +23,27 @@ body {
   }
 }
 
+/* 1. Untuk Ticker Text Bawaan (Cepat - 15 detik) */
 .animate-marquee {
   animation: marquee 15s linear infinite;
 }
+
+/* 2. KHUSUS UNTUK PORTFOLIO SHOWCASE SLIDER (Lebih Santai - 25 detik) */
+.animate-marquee-portfolio {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+/* Efek Interaktif: Jalannya slider akan berhenti otomatis saat kursor mouse menyentuh kartu projek */
+.animate-marquee-portfolio:hover {
+  animation-play-state: paused;
+}
+
+
+/* ==========================================================
+   ANIMASI KURSOR KETIK (TYPING EFFECT)
+   ========================================================== */
 @keyframes blink {
   50% {
     border-color: transparent;
