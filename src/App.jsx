@@ -716,14 +716,24 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Footer Kartu */}
                 <div className="flex items-center justify-between pt-3 border-t border-slate-800/60">
                   <span className="text-[9px] sm:text-[10px] px-2 py-0.5 sm:py-1 rounded-md font-mono border bg-slate-900 text-slate-300 border-slate-800">
                     {project.tech}
                   </span>
-                  <button className="text-[11px] font-bold text-blue-400 hover:text-blue-300 hover:underline">
-                    {t[lang].showcase.testBtn}
-                  </button>
+                  {project.web_url ? (
+                    <a
+                      href={project.web_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-bold text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center"
+                    >
+                      {t[lang].showcase.testBtn}
+                    </a>
+                  ) : (
+                    <span className="text-[11px] font-bold text-slate-500 cursor-not-allowed">
+                      No Preview
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
