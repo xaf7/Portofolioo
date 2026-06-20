@@ -473,12 +473,13 @@ export default function App() {
   if (viewMode === "admin") {
     return (
       <AdminDashboard
-        isDarkMode={isDarkMode}
         projects={projects}
         setProjects={setProjects}
         testimonials={testimonials}
         setTestimonials={setTestimonials}
         onLogout={handleLogout}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
     );
   }
