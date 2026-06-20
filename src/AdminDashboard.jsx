@@ -15,6 +15,7 @@ import {
   X,
   Image as ImageIcon,
   Edit3,
+  ExternalLink, // 🌐 Menambahkan ikon baru untuk link eksternal web
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
@@ -36,12 +37,13 @@ export default function AdminDashboard({
   const [projForm, setProjForm] = useState({
     title: "",
     category: "",
-    desc: "", // State internal form tetap pakai 'desc' tidak masalah
+    desc: "",
     tech: "Laravel + React",
     speed: "98/100",
     status: "Production Ready",
     color: "from-blue-600 to-indigo-700",
     image_url: "",
+    web_url: "", // 🌐 Menambahkan state default untuk link live preview web
   });
 
   const [testiForm, setTestiForm] = useState({
@@ -58,7 +60,7 @@ export default function AdminDashboard({
   const [deletingId, setDeletingId] = useState(null);
 
   // ==========================================
-  // FUNGSI TAMBAH / UPDATE PROJEK (FIXED)
+  // FUNGSI TAMBAH / UPDATE PROJEK
   // ==========================================
   const handleSaveProject = async (e) => {
     e.preventDefault();
@@ -72,12 +74,13 @@ export default function AdminDashboard({
         month: "long",
         year: "numeric",
       }),
-      description: projForm.desc, // ✅ SELESAI DIPERBAIKI: Menggunakan 'description' sesuai kolom SQL database
+      description: projForm.desc,
       tech: projForm.tech,
       speed: projForm.speed,
       status: projForm.status,
       color: projForm.color,
       image_url: projForm.image_url,
+      web_url: projForm.web_url, // 🌐 Memasukkan web_url ke payload objek SQL Supabase
     };
 
     if (editingProject) {
@@ -127,6 +130,7 @@ export default function AdminDashboard({
       status: "Production Ready",
       color: "from-blue-600 to-indigo-700",
       image_url: "",
+      web_url: "", // 🌐 Reset form url link web
     });
   };
 
@@ -136,12 +140,13 @@ export default function AdminDashboard({
     setProjForm({
       title: p.title || "",
       category: p.category || "",
-      desc: p.description || p.desc || "", // ✅ DISESUAIKAN: mengambil dari data database 'description'
+      desc: p.description || p.desc || "",
       tech: p.tech || "Laravel + React",
       speed: p.speed || "98/100",
       status: p.status || "Production Ready",
       color: p.color || "from-blue-600 to-indigo-700",
       image_url: p.image_url || "",
+      web_url: p.web_url || "", // 🌐 Mengambil data link web yang ada di baris database
     });
   };
 
@@ -172,7 +177,7 @@ export default function AdminDashboard({
       company: testiForm.company,
       tags: testiForm.tags,
       rating: testiForm.rating,
-      // Jika di tabel SQL belum ada avatar_url, biarkan kosong atau sesuaikan dengan struktur database
+      avatar_url: testiForm.avatar_url, // FIX: Menyertakan avatar_url ke database Supabase
     };
 
     if (editingTestimonial) {
@@ -448,20 +453,38 @@ export default function AdminDashboard({
                   />
                 </div>
 
-                {/* FIELD INPUT URL FOTO WEB UNTUK PROJEK KERJA */}
-                <div>
-                  <label className="block text-slate-400 mb-1 flex items-center gap-1">
-                    <ImageIcon size={12} /> URL Sampul / Foto Web Projek
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/foto-web-projek.png"
-                    value={projForm.image_url}
-                    onChange={(e) =>
-                      setProjForm({ ...projForm, image_url: e.target.value })
-                    }
-                    className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* FIELD INPUT URL FOTO WEB UNTUK PROJEK KERJA */}
+                  <div>
+                    <label className="block text-slate-400 mb-1 flex items-center gap-1">
+                      <ImageIcon size={12} /> URL Sampul / Foto Web Projek
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/foto-web-projek.png"
+                      value={projForm.image_url}
+                      onChange={(e) =>
+                        setProjForm({ ...projForm, image_url: e.target.value })
+                      }
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
+                    />
+                  </div>
+
+                  {/* 🌐 FIELD BARU: LIVE PREVIEW URL WEBSITE */}
+                  <div>
+                    <label className="block text-slate-400 mb-1 flex items-center gap-1 text-blue-500">
+                      <ExternalLink size={12} /> Link Live Preview Web Aplikasi
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://projek-kamu.com"
+                      value={projForm.web_url}
+                      onChange={(e) =>
+                        setProjForm({ ...projForm, web_url: e.target.value })
+                      }
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-blue-400 border-blue-500/30" : "bg-white border-slate-300"}`}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -536,6 +559,7 @@ export default function AdminDashboard({
                           status: "Production Ready",
                           color: "from-blue-600 to-indigo-700",
                           image_url: "",
+                          web_url: "",
                         });
                       }}
                       className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg"
@@ -557,8 +581,8 @@ export default function AdminDashboard({
                       key={p.id}
                       className={`p-3 rounded-lg border flex items-center justify-between text-[12px] ${isDarkMode ? "bg-[#181924] border-[#2d3042]" : "bg-[#f5f5f9]"}`}
                     >
-                      <div className="flex items-center gap-3 truncate max-w-[80%]">
-                        {/* Menampilkan Preview Kecil Foto Web Projek jika ada */}
+                      <div className="flex items-center gap-3 truncate max-w-[70%]">
+                        {/* Menampilkan Preview Kecil Foto Web Projek */}
                         {p.image_url && (
                           <img
                             src={p.image_url}
@@ -571,12 +595,25 @@ export default function AdminDashboard({
                           <span className="font-bold block truncate">
                             {p.title}
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-slate-400 block truncate">
                             {p.category}
                           </span>
                         </div>
                       </div>
+
                       <div className="flex items-center gap-1">
+                        {/* 🌐 TOMBOL TEST LINK BARU: klik untuk test link live preview langsung */}
+                        {p.web_url && (
+                          <a
+                            href={p.web_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-500 p-1.5 hover:bg-emerald-500/10 rounded-lg flex items-center"
+                            title="Test Live Preview"
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
                         <button
                           onClick={() => startEditProject(p)}
                           className="text-blue-500 p-1.5 hover:bg-blue-500/10 rounded-lg"
