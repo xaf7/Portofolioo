@@ -659,9 +659,23 @@ export default function App() {
               >
                 <div>
                   <div
-                    className={`w-full rounded-xl bg-gradient-to-br ${project.color} p-4 sm:p-5 flex flex-col justify-between text-white mb-5 sm:mb-6 shadow-inner relative overflow-hidden h-64 sm:h-72`}
+                    className={`w-full rounded-xl bg-gradient-to-br ${project.color} flex flex-col justify-between text-white mb-5 sm:mb-6 shadow-inner relative overflow-hidden h-64 sm:h-72`}
                   >
-                    <div className="flex items-start justify-between gap-4 z-10 w-full">
+                    {/* JIKA ADA URL GAMBAR, TAMPILKAN SEBAGAI BACKGROUND FULL */}
+                    {project.image_url && (
+                      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                        <img
+                          src={project.image_url}
+                          alt={project.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {/* Overlay Gradasi agar teks di atas gambar tetap terbaca jelas */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/50"></div>
+                      </div>
+                    )}
+
+                    {/* Header Kartu Projek */}
+                    <div className="flex items-start justify-between gap-4 z-10 w-full p-4 sm:p-5">
                       <h3 className="text-sm sm:text-base font-black tracking-tight leading-tight max-w-[65%] drop-shadow-md">
                         {project.title}
                       </h3>
@@ -669,47 +683,69 @@ export default function App() {
                         {project.category}
                       </span>
                     </div>
+
+                    {/* Tampilan Konten Bawah Kartu */}
                     <div className="w-full opacity-95 transition-transform duration-500 group-hover:translate-y-[-6px] pointer-events-none flex flex-col justify-end z-10 mt-auto">
                       <div className="absolute inset-x-0 bottom-0 mx-auto w-40 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                      <div className="w-full bg-black/50 backdrop-blur-xl border border-white/15 rounded-t-xl p-3.5 shadow-2xl flex flex-col gap-3 h-44">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+
+                      {project.image_url ? (
+                        /* JIKA ADA GAMBAR: Tampilkan bar navigasi preview transparan yang simpel di atas foto */
+                        <div className="mx-4 mb-4 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-2.5 shadow-2xl flex items-center justify-between">
                           <div className="flex gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-red-500/90"></span>
                             <span className="w-2 h-2 rounded-full bg-yellow-500/90"></span>
                             <span className="w-2 h-2 rounded-full bg-green-500/90"></span>
                           </div>
-                          <div className="bg-white/10 rounded-md px-3 py-0.5 text-[8px] text-white/60 font-mono tracking-tight truncate w-40 text-center border border-white/5">
-                            localhost:3000/live-preview
+                          <div className="text-[8px] text-white/50 font-mono tracking-tight truncate w-32 text-center">
+                            xaf7studio.com/preview
                           </div>
-                          <div className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-sm">
+                          <div className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                             {project.speed || "99/100"}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2.5">
-                          <div className="flex flex-col gap-1">
-                            <div className="w-4/5 h-3 bg-gradient-to-r from-white to-white/40 rounded-sm"></div>
-                            <div className="w-1/2 h-2 bg-white/20 rounded-sm"></div>
+                      ) : (
+                        /* JIKA TIDAK ADA GAMBAR: Tampilkan Mockup Code Editor Tiruan (Fallback Template) */
+                        <div className="w-full bg-black/50 backdrop-blur-xl border border-white/15 rounded-t-xl p-3.5 shadow-2xl flex flex-col gap-3 h-44">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                            <div className="flex gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-red-500/90"></span>
+                              <span className="w-2 h-2 rounded-full bg-yellow-500/90"></span>
+                              <span className="w-2 h-2 rounded-full bg-green-500/90"></span>
+                            </div>
+                            <div className="bg-white/10 rounded-md px-3 py-0.5 text-[8px] text-white/60 font-mono tracking-tight truncate w-40 text-center border border-white/5">
+                              localhost:3000/live-preview
+                            </div>
+                            <div className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-sm">
+                              {project.speed || "99/100"}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-3 gap-2 mt-1">
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
-                              <div className="w-full h-2 bg-blue-400/50 rounded-sm"></div>
-                              <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
+                          <div className="flex flex-col gap-2.5">
+                            <div className="flex flex-col gap-1">
+                              <div className="w-4/5 h-3 bg-gradient-to-r from-white to-white/40 rounded-sm"></div>
+                              <div className="w-1/2 h-2 bg-white/20 rounded-sm"></div>
                             </div>
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
-                              <div className="w-full h-2 bg-purple-400/50 rounded-sm"></div>
-                              <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
-                            </div>
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
-                              <div className="w-full h-2 bg-emerald-400/50 rounded-sm"></div>
-                              <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
+                            <div className="grid grid-cols-3 gap-2 mt-1">
+                              <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
+                                <div className="w-full h-2 bg-blue-400/50 rounded-sm"></div>
+                                <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
+                              </div>
+                              <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
+                                <div className="w-full h-2 bg-purple-400/50 rounded-sm"></div>
+                                <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
+                              </div>
+                              <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col gap-1.5 shadow-sm">
+                                <div className="w-full h-2 bg-emerald-400/50 rounded-sm"></div>
+                                <div className="w-5/6 h-1 bg-white/20 rounded-xs"></div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
+                  {/* Penanganan fleksibel untuk properti deskripsi database (description atau desc) */}
                   <p className="text-[12px] leading-relaxed mb-5 sm:mb-6 text-slate-300">
-                    {project.desc}
+                    {project.description || project.desc}
                   </p>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-slate-800/60">
@@ -725,7 +761,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
       {/* SEKSI TESTIMONI SLIDER */}
       <section
         id="testimoni"
