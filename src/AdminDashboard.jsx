@@ -3,11 +3,12 @@ import {
   Plus,
   Trash2,
   LayoutDashboard,
-  Globe,
   FolderPlus,
   MessageSquare,
   LogOut,
+  Loader2,
 } from "lucide-react";
+import { supabase } from "./supabaseClient";
 
 export default function AdminDashboard({
   projects,
@@ -17,7 +18,6 @@ export default function AdminDashboard({
   onLogout,
   isDarkMode,
 }) {
-  // State Form Projek
   const [projForm, setProjForm] = useState({
     title: "",
     category: "",
@@ -26,12 +26,8 @@ export default function AdminDashboard({
     speed: "98/100",
     status: "Production Ready",
     color: "from-blue-600 to-indigo-700",
-    mockupHero: "",
-    mockupSub: "",
-    mockupFeatures: "",
   });
 
-  // State Form Testimoni
   const [testiForm, setTestiForm] = useState({
     quote: "",
     name: "",
@@ -40,10 +36,15 @@ export default function AdminDashboard({
     rating: "5.0",
   });
 
-  const handleCreateProject = (e) => {
+  const [savingProj, setSavingProj] = useState(false);
+  const [savingTesti, setSavingTesti] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleCreateProject = async (e) => {
     e.preventDefault();
-    const newProj = {
-      id: Date.now(),
+    setSavingProj(true);
+
+    const newProjData = {
       title: projForm.title,
       category: projForm.category,
       date: new Date().toLocaleDateString("en-GB", {
@@ -56,13 +57,21 @@ export default function AdminDashboard({
       speed: projForm.speed,
       status: projForm.status,
       color: projForm.color,
-      mockupData: {
-        hero: projForm.mockupHero || projForm.title,
-        sub: projForm.mockupSub || projForm.desc,
-        features: projForm.mockupFeatures || projForm.category,
-      },
     };
-    setProjects([newProj, ...projects]);
+
+    const { data, error } = await supabase
+      .from("projects")
+      .insert([newProjData])
+      .select();
+
+    setSavingProj(false);
+
+    if (error) {
+      alert("Gagal menyimpan ke database: " + error.message);
+      return;
+    }
+
+    setProjects([data[0], ...projects]);
     setProjForm({
       title: "",
       category: "",
@@ -71,24 +80,47 @@ export default function AdminDashboard({
       speed: "98/100",
       status: "Production Ready",
       color: "from-blue-600 to-indigo-700",
-      mockupHero: "",
-      mockupSub: "",
-      mockupFeatures: "",
     });
     alert("Projek berhasil dipublikasikan!");
   };
 
-  const handleCreateTestimonial = (e) => {
+  const handleDeleteProject = async (id) => {
+    setDeletingId(id);
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    setDeletingId(null);
+
+    if (error) {
+      alert("Gagal menghapus: " + error.message);
+      return;
+    }
+    setProjects(projects.filter((item) => item.id !== id));
+  };
+
+  const handleCreateTestimonial = async (e) => {
     e.preventDefault();
-    const newTesti = {
-      id: Date.now(),
+    setSavingTesti(true);
+
+    const newTestiData = {
       quote: testiForm.quote,
       name: testiForm.name,
       company: testiForm.company,
       tags: testiForm.tags,
       rating: testiForm.rating,
     };
-    setTestimonials([newTesti, ...testimonials]);
+
+    const { data, error } = await supabase
+      .from("testimonials")
+      .insert([newTestiData])
+      .select();
+
+    setSavingTesti(false);
+
+    if (error) {
+      alert("Gagal menyimpan ke database: " + error.message);
+      return;
+    }
+
+    setTestimonials([data[0], ...testimonials]);
     setTestiForm({
       quote: "",
       name: "",
@@ -99,26 +131,38 @@ export default function AdminDashboard({
     alert("Testimoni berhasil ditambahkan!");
   };
 
+  const handleDeleteTestimonial = async (id) => {
+    setDeletingId(id);
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    setDeletingId(null);
+
+    if (error) {
+      alert("Gagal menghapus: " + error.message);
+      return;
+    }
+    setTestimonials(testimonials.filter((item) => item.id !== id));
+  };
+
   return (
     <div
       className={`w-full min-h-screen font-sans ${isDarkMode ? "bg-[#0f1115] text-slate-200" : "bg-slate-50 text-slate-800"}`}
     >
       {/* Header Panel */}
       <header
-        className={`w-full border-b px-6 lg:px-20 py-4 flex items-center justify-between sticky top-0 z-50 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
+        className={`w-full border-b px-4 sm:px-6 lg:px-20 py-4 flex items-center justify-between sticky top-0 z-50 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shrink-0">
             <LayoutDashboard size={16} />
           </div>
           <div>
             <h1
-              className={`text-sm font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              className={`text-xs sm:text-sm font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}
             >
               XAF7 CORE ENGINE CONTROL
             </h1>
             <p className="text-[10px] text-slate-400">
-              Pusat Sistem Update Terisolasi Vercel
+              Tersinkron langsung dengan database
             </p>
           </div>
         </div>
@@ -132,7 +176,7 @@ export default function AdminDashboard({
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid lg:grid-cols-2 gap-8">
         {/* PANEL MANAJEMEN PORTFOLIO WEB */}
         <div
           className={`border rounded-2xl p-6 space-y-4 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
@@ -210,55 +254,24 @@ export default function AdminDashboard({
               ></textarea>
             </div>
 
-            <div
-              className={`p-4 border rounded-xl space-y-2.5 ${isDarkMode ? "bg-[#181b22] border-slate-800" : "bg-slate-100 border-slate-200"}`}
-            >
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest block">
-                ⚙️ Data Sistem Simulator Terintegrasi
-              </span>
-              <input
-                type="text"
-                required
-                value={projForm.mockupHero}
-                onChange={(e) =>
-                  setProjForm({ ...projForm, mockupHero: e.target.value })
-                }
-                placeholder="Judul Hero Live Preview"
-                className={`w-full border rounded-lg p-2 outline-none text-[11px] ${isDarkMode ? "bg-[#13161c] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900"}`}
-              />
-              <input
-                type="text"
-                required
-                value={projForm.mockupSub}
-                onChange={(e) =>
-                  setProjForm({ ...projForm, mockupSub: e.target.value })
-                }
-                placeholder="Sub-Deskripsi Live Preview"
-                className={`w-full border rounded-lg p-2 outline-none text-[11px] ${isDarkMode ? "bg-[#13161c] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900"}`}
-              />
-              <input
-                type="text"
-                required
-                value={projForm.mockupFeatures}
-                onChange={(e) =>
-                  setProjForm({ ...projForm, mockupFeatures: e.target.value })
-                }
-                placeholder="Fitur Utama (Pisahkan dengan Koma)"
-                className={`w-full border rounded-lg p-2 outline-none text-[11px] ${isDarkMode ? "bg-[#13161c] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900"}`}
-              />
-            </div>
-
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl uppercase tracking-wider transition-all"
+              disabled={savingProj}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl uppercase tracking-wider transition-all flex items-center justify-center gap-2"
             >
-              Tambahkan Projek Baru
+              {savingProj ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Menyimpan...
+                </>
+              ) : (
+                "Tambahkan Projek Baru"
+              )}
             </button>
           </form>
 
           <div className="pt-4 border-t border-slate-800/60 space-y-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              List Projek Aktif
+              List Projek Aktif ({projects.length})
             </span>
             {projects.map((p) => (
               <div
@@ -267,12 +280,15 @@ export default function AdminDashboard({
               >
                 <span className="truncate font-bold">{p.title}</span>
                 <button
-                  onClick={() =>
-                    setProjects(projects.filter((item) => item.id !== p.id))
-                  }
-                  className="text-red-400 p-1 hover:bg-red-500/10 rounded-md"
+                  onClick={() => handleDeleteProject(p.id)}
+                  disabled={deletingId === p.id}
+                  className="text-red-400 p-1 hover:bg-red-500/10 rounded-md shrink-0"
                 >
-                  <Trash2 size={13} />
+                  {deletingId === p.id ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={13} />
+                  )}
                 </button>
               </div>
             ))}
@@ -345,15 +361,22 @@ export default function AdminDashboard({
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl uppercase tracking-wider transition-all"
+              disabled={savingTesti}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold rounded-xl uppercase tracking-wider transition-all flex items-center justify-center gap-2"
             >
-              Publikasikan Testimoni
+              {savingTesti ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Menyimpan...
+                </>
+              ) : (
+                "Publikasikan Testimoni"
+              )}
             </button>
           </form>
 
           <div className="pt-4 border-t border-slate-800/60 space-y-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              List Testimoni Aktif
+              List Testimoni Aktif ({testimonials.length})
             </span>
             {testimonials.map((t) => (
               <div
@@ -365,14 +388,15 @@ export default function AdminDashboard({
                   <strong className="text-blue-400">{t.company}</strong>
                 </span>
                 <button
-                  onClick={() =>
-                    setTestimonials(
-                      testimonials.filter((item) => item.id !== t.id),
-                    )
-                  }
-                  className="text-red-400 p-1 hover:bg-red-500/10 rounded-md"
+                  onClick={() => handleDeleteTestimonial(t.id)}
+                  disabled={deletingId === t.id}
+                  className="text-red-400 p-1 hover:bg-red-500/10 rounded-md shrink-0"
                 >
-                  <Trash2 size={13} />
+                  {deletingId === t.id ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={13} />
+                  )}
                 </button>
               </div>
             ))}

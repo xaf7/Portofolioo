@@ -1,21 +1,32 @@
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { supabase } from "./supabaseClient";
 
 export default function AdminLogin({ onLoginSuccess, isDarkMode, onBack }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const ADMIN_USER = "admin_xaf7";
-    const ADMIN_PASS = "SuperSecureXAF7_2026";
+    setError("");
+    setLoading(true);
 
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      setError("");
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (authError) {
+      setError("Kredensial salah! Akses ditolak.");
+      return;
+    }
+
+    if (data?.session) {
       onLoginSuccess();
-    } else {
-      setError("Kredensial salah! Akses ditolak sembarangan.");
     }
   };
 
@@ -43,7 +54,7 @@ export default function AdminLogin({ onLoginSuccess, isDarkMode, onBack }) {
             Core Gateway Auth
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Gunakan username: <code className="text-blue-400">admin_xaf7</code>
+            Masuk dengan akun admin terdaftar
           </p>
         </div>
 
@@ -55,14 +66,14 @@ export default function AdminLogin({ onLoginSuccess, isDarkMode, onBack }) {
             <label
               className={`block mb-1 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
             >
-              Sistem Username
+              Email Admin
             </label>
             <input
-              type="text"
+              type="email"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Masukkan ID Pengguna"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@xaf7studio.com"
               className={`w-full border rounded-xl px-3.5 py-3 outline-none focus:border-blue-500 transition-all ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-100 border-slate-300 text-slate-900"}`}
             />
           </div>
@@ -70,7 +81,7 @@ export default function AdminLogin({ onLoginSuccess, isDarkMode, onBack }) {
             <label
               className={`block mb-1 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
             >
-              Sistem Sandi Rahasia
+              Kata Sandi
             </label>
             <input
               type="password"
@@ -90,9 +101,16 @@ export default function AdminLogin({ onLoginSuccess, isDarkMode, onBack }) {
 
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl uppercase tracking-wider transition-all"
+            disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl uppercase tracking-wider transition-all flex items-center justify-center gap-2"
           >
-            Verifikasi Akses Gateway ➔
+            {loading ? (
+              <>
+                <Loader2 size={14} className="animate-spin" /> Memverifikasi...
+              </>
+            ) : (
+              "Verifikasi Akses Gateway ➔"
+            )}
           </button>
         </form>
       </div>

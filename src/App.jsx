@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import AdminLogin from "./AdminLogin";
 import AdminDashboard from "./AdminDashboard";
+import { supabase } from "./supabaseClient";
 
 function useScrollReveal() {
   const ref = useRef(null);
@@ -39,7 +40,6 @@ export default function App() {
   const t = {
     id: {
       nav: {
-        home: "Home",
         adv: "Advertisers",
         pub: "Publishers",
         gal: "Gallery",
@@ -48,9 +48,9 @@ export default function App() {
       },
       hero: {
         badge: "Siswa SMK & Spesialis Backend",
-        title1: "Website Modern ",
+        title1: "Digital Ads dibangun",
         title2: "untuk",
-        desc: "Teknologi Proprietary. Hasil Terbukti. Custom dibuat sesuai kebutuhan.",
+        desc: "Teknologi Proprietary. Hasil Terbukti. Tanpa Jalan Pintas. Hanya Performa.",
         btn: "Mulai Sekarang ➔",
       },
       showcase: {
@@ -108,7 +108,6 @@ export default function App() {
     },
     en: {
       nav: {
-        home: "Home",
         adv: "Advertisers",
         pub: "Publishers",
         gal: "Gallery",
@@ -117,10 +116,10 @@ export default function App() {
       },
       hero: {
         badge: "Vocational High School Student & Backend Specialist",
-        title1: "Modern Website ",
-        title2: "for",
-        desc: "Proprietary Technology. Proven Results. Custom built to your needs.",
-        btn: "Get Started Now ➔",
+        title1: "Digital Ads built",
+        title2: "to",
+        desc: "Proprietary Technology. Proven Results. No Shortcuts. Just Performance.",
+        btn: "Get started ➔",
       },
       showcase: {
         badge: "FROM MY BLOGPOST & PRODUCTS",
@@ -128,15 +127,15 @@ export default function App() {
         testBtn: "TEST LIVE PREVIEW ➔",
       },
       testimoni: {
-        title1: "Testimonials that Speak",
-        title2: "About My Results",
+        title1: "Testimonials that Speak to",
+        title2: "My Results",
         desc: "Hear real feedback directly from enterprise clients and educational institutions who trust their systems with us.",
       },
       brief: {
         badge: "Let's Build Together",
         title1: "Unite Your Great Ideas,",
         title2: "Realize Your Dream System!",
-        desc: "Have a concept for an app, dashboard, or digital platform you want to execute? Don't let that idea sit idle. Let's combine your business vision with our modern technical expertise to build digital products that are fast, resilient, and highly targeted.",
+        desc: "Have a concept for an app, dashboard, or digital platform you want to execute? Don't let that idea sit idle. Let's combine your business vision with our modern technical expertise to build fast, resilient, and targeted digital products.",
         alert: "Fill out the form on the side to start aligning our goals.",
         formTitle: "PROJECT BRIEF",
         labelDomain: "Supporting Domain Name",
@@ -176,6 +175,7 @@ export default function App() {
       },
     },
   };
+
   const [activeFaqId, setActiveFaqId] = useState(null);
 
   const faqData = [
@@ -237,7 +237,19 @@ export default function App() {
   };
   const [viewMode, setViewMode] = useState(getInitialView);
 
-  const handleLogout = () => {
+  // Cek apakah admin sudah punya session Supabase aktif (biar tidak perlu login ulang tiap buka ?admin=true)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("admin") !== "true") return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session) setViewMode("admin");
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setViewMode("client");
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -310,75 +322,40 @@ export default function App() {
   const [chatStep, setChatStep] = useState("welcome");
   const [selectedOption, setSelectedOption] = useState(null);
 
-  const [testimonials, setTestimonials] = useState([
-    {
-      id: 1,
-      quote:
-        lang === "id"
-          ? "Sistem dashboard internal yang dibangun XAF7 Studio sangat membantu otomasi data pergudangan kami. Arsitektur React-nya luar biasa kencang."
-          : "The internal dashboard system built by XAF7 Studio greatly helped automate our warehousing data. Its React architecture is remarkably fast.",
-      name: "Henry, Arthur",
-      company: "CEO, Food Express",
-      tags: "SaaS Enterprise",
-    },
-    {
-      id: 2,
-      quote:
-        lang === "id"
-          ? "Portal akademik sekolah selesai tepat waktu dalam 2 minggu. Walau diakses ribuan siswa bersamaan saat ujian, server tetap stabil."
-          : "The school academic portal was completed on time in 2 weeks. Even though thousands of students accessed it simultaneously during exams, the server remained stable.",
-      name: "Joshua, Arthur",
-      company: "CTO, EV Charger",
-      tags: "Institusi Pendidikan",
-    },
-    {
-      id: 3,
-      quote:
-        lang === "id"
-          ? "Landing page affiliate generator bikinan XAF7 berhasil meningkatkan angka konversi penjualan produk kami hingga 40%. Highly recommended!"
-          : "The affiliate generator landing page made by XAF7 successfully increased our product sales conversion rate by up to 40%. Highly recommended!",
-      name: "Laju Retail",
-      company: "Manager, Retail Utama",
-      tags: "E-Commerce & Affiliate",
-    },
-  ]);
+  // Data testimoni & projek diambil LANGSUNG dari database Supabase
+  // sehingga semua pengunjung melihat data yang sama, dan perubahan
+  // dari Admin Dashboard langsung tersimpan permanen.
+  const [testimonials, setTestimonials] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      title: "EduSmart - Dashboard Portal Sekolah V4",
-      category:
-        lang === "id"
-          ? "Sistem Academic & Absensi"
-          : "Academic & Attendance System",
-      date: "12 May 2026",
-      desc:
-        lang === "id"
-          ? "Platform manajemen data nilai, penagihan SPP otomatis, dan absensi digital real-time terintegrasi."
-          : "Integrated platform for grade data management, automated tuition billing, and real-time digital attendance.",
-      tech: "Laravel + React",
-      speed: "98/100",
-      status: "Production Ready",
-      color: "from-blue-600 to-indigo-700",
-    },
-    {
-      id: 2,
-      title: "KopiMaju Fin - POS & Multi-Warehouse",
-      category:
-        lang === "id"
-          ? "Aplikasi Keuangan Retail"
-          : "Retail Financial Application",
-      date: "04 June 2026",
-      desc:
-        lang === "id"
-          ? "Sistem kasir multi-cabang dengan visualisasi grafik laba rugi dan manajemen stok pergudangan terpusat."
-          : "Multi-branch cashier system with profit and loss graphic visualization and centralized warehouse stock management.",
-      tech: "Tailwind + Inertia v4",
-      speed: "99/100",
-      status: "Optimized",
-      color: "from-cyan-500 to-blue-900",
-    },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      setDataLoading(true);
+
+      const [
+        { data: projData, error: projError },
+        { data: testiData, error: testiError },
+      ] = await Promise.all([
+        supabase.from("projects").select("*").order("id", { ascending: false }),
+        supabase
+          .from("testimonials")
+          .select("*")
+          .order("id", { ascending: false }),
+      ]);
+
+      if (projError)
+        console.error("Gagal mengambil data projects:", projError.message);
+      if (testiError)
+        console.error("Gagal mengambil data testimonials:", testiError.message);
+
+      setProjects(projData || []);
+      setTestimonials(testiData || []);
+      setDataLoading(false);
+    };
+
+    fetchData();
+  }, []);
 
   const [briefForm, setBriefForm] = useState({
     domainName: "",
@@ -395,8 +372,8 @@ export default function App() {
 
   const words =
     lang === "id"
-      ? ["Bisnis.", "Organisasi.", "UMKM."]
-      : ["Businesses.", "Organizations.", "SMEs."];
+      ? ["Engage.", "Cepat.", "Cerdas."]
+      : ["Engage.", "Fast.", "Smart."];
   const [currentWordIdx, setCurrentWordIdx] = useState(0);
   const [currentText, setCurrentText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -457,7 +434,7 @@ export default function App() {
       alert(t[lang].brief.alertValidate);
       return;
     }
-    const nomorWA = "6283129195737";
+    const nomorWA = "6281234567890";
     window.open(
       `https://api.whatsapp.com/send?phone=${nomorWA}&text=${generateBriefText()}`,
       "_blank",
@@ -470,7 +447,7 @@ export default function App() {
       alert(t[lang].brief.alertValidate);
       return;
     }
-    const emailTujuan = "xafdevstudio@gmail.com";
+    const emailTujuan = "kontak@xaf7studio.com";
     const subjectTitle =
       lang === "id" ? "Brief Proyek Baru" : "New Project Brief";
     window.location.href = `mailto:${emailTujuan}?subject=${subjectTitle} - ${encodeURIComponent(briefForm.domainName)}&body=${generateBriefText()}`;
@@ -512,7 +489,7 @@ export default function App() {
     >
       {/* NAVBAR */}
       <nav
-        className={`fixed top-0 left-0 w-full z-50 px-4 lg:px-20 py-4 flex items-center justify-between border-b transition-colors duration-300 ${isDarkMode ? "bg-[#1d4ed8]/90 border-blue-700 text-white" : "bg-white border-blue-500 text-slate-900"} backdrop-blur-md`}
+        className={`fixed top-0 left-0 w-full z-50 px-4 lg:px-20 py-4 flex items-center justify-between border-b transition-colors duration-300 ${isDarkMode ? "bg-[#020408]/90 border-slate-900 text-white" : "bg-white border-blue-500 text-slate-900"} backdrop-blur-md`}
       >
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <img
@@ -527,16 +504,8 @@ export default function App() {
 
         {/* Nav links — hidden on mobile */}
         <div
-          className={`hidden md:flex items-center gap-8 text-[12px] font-semibold tracking-wide transition-colors duration-300 ${isDarkMode ? "text-blue-100" : "text-slate-600"}`}
+          className={`hidden md:flex items-center gap-8 text-[12px] font-semibold tracking-wide transition-colors duration-300 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
         >
-          {/* Tombol Home mengarah ke seksi hero */}
-          <button
-            onClick={() => scrollToSection("hero")}
-            className="hover:text-blue-500 transition-colors"
-          >
-            {t[lang].nav.home}
-          </button>
-
           <button
             onClick={() => scrollToSection("showcase")}
             className="hover:text-blue-500 transition-colors"
@@ -567,7 +536,7 @@ export default function App() {
           {/* Tombol bahasa */}
           <button
             onClick={() => setLang(lang === "id" ? "en" : "id")}
-            className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-[11px] font-bold ${isDarkMode ? "border-blue-500 hover:bg-blue-600 bg-blue-800 text-white" : "border-slate-200 hover:bg-slate-100 bg-white text-blue-600"}`}
+            className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-[11px] font-bold ${isDarkMode ? "border-slate-800 hover:bg-slate-900 bg-slate-950 text-blue-400" : "border-slate-200 hover:bg-slate-100 bg-white text-blue-600"}`}
             title="Switch Language"
           >
             <Languages size={13} />
@@ -577,15 +546,15 @@ export default function App() {
           {/* Tombol dark mode */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-xl border transition-all ${isDarkMode ? "border-blue-500 hover:bg-blue-600 bg-blue-800 text-yellow-400" : "border-slate-200 hover:bg-slate-100 bg-white text-slate-700"}`}
+            className={`p-2 rounded-xl border transition-all ${isDarkMode ? "border-slate-800 hover:bg-slate-900 bg-slate-950 text-yellow-400" : "border-slate-200 hover:bg-slate-100 bg-white text-slate-700"}`}
           >
             {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Tombol Contact */}
+          {/* Tombol Contact (selalu tampil, Login disembunyikan) */}
           <button
             onClick={() => scrollToSection("brief")}
-            className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all shadow-sm ${isDarkMode ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all shadow-sm"
           >
             {t[lang].nav.contact}
           </button>
@@ -594,12 +563,10 @@ export default function App() {
 
       {/* HERO SECTION */}
       <section
-        id="hero"
         ref={heroRef}
         className={`w-full pt-28 sm:pt-36 md:pt-48 pb-16 sm:pb-24 px-4 sm:px-6 text-left transition-all duration-1000 transform ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-transparent" : "bg-white"}`}
       >
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Kolom Kiri: Konten Teks */}
           <div>
             <div
               className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold mb-5 tracking-wide border ${isDarkMode ? "bg-blue-950/40 border-blue-900/50 text-blue-400" : "bg-blue-50 border-blue-100 text-blue-600"}`}
@@ -629,13 +596,39 @@ export default function App() {
             </button>
           </div>
 
-          {/* Kolom Kanan: Gambar dari folder public */}
+          {/* VISUAL MOCKUP */}
           <div className="relative flex justify-center items-center w-full mt-8 md:mt-0">
-            <img
-              src="./tes.png"
-              alt="Hero Illustration"
-              className="w-full max-w-xs md:max-w-sm h-auto object-contain rounded-2xl drop-shadow-2xl"
-            />
+            <div className="w-full max-w-md bg-black/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl h-72 flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                </div>
+                <div className="bg-white/10 rounded-md px-4 py-0.5 text-[9px] text-white/40 font-mono">
+                  xaf7studio.com/live-preview
+                </div>
+                <div className="w-4"></div>
+              </div>
+              <div className="flex flex-col gap-3 my-auto">
+                <div className="w-3/4 h-4 bg-gradient-to-r from-blue-500 to-transparent rounded"></div>
+                <div className="w-1/2 h-3 bg-white/20 rounded"></div>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
+                    <div className="w-full h-2 bg-blue-400/50 rounded mb-1"></div>
+                    <div className="w-2/3 h-1 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
+                    <div className="w-full h-2 bg-blue-500/50 rounded mb-1"></div>
+                    <div className="w-1/2 h-1 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
+                    <div className="w-full h-2 bg-emerald-400/50 rounded mb-1"></div>
+                    <div className="w-3/4 h-1 bg-white/20 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -732,7 +725,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* SEKSI TESTIMONI — TAMPIL 3 CARD DI LAPTOP, SLIDE SATU PER SATU */}
+      {/* SEKSI TESTIMONI SLIDER */}
       <section
         id="testimoni"
         ref={testimoniRef}
@@ -749,64 +742,61 @@ export default function App() {
             {t[lang].testimoni.desc}
           </p>
 
-          {/* Area Utama Pembungkus Slider */}
-          <div className="w-full px-4 sm:px-6">
-            {/* Outer Wrapper: HP muat 1 card (320px), Laptop muat 3 card sekaligus (1416px) */}
-            <div className="w-full max-w-[320px] sm:max-w-[1416px] mx-auto overflow-hidden">
-              <div
-                className="flex gap-6 items-stretch transition-transform duration-500 ease-out py-4"
-                style={{
-                  // FIX AKURASI: Di mobile geser 100%, di laptop geser per ketebalan 1 card tunggal (440px) + gap (24px) = 464px
-                  transform:
-                    typeof window !== "undefined" && window.innerWidth < 640
-                      ? `translateX(calc(-${currentIdx} * (100% + 24px)))`
-                      : `translateX(-${currentIdx * 464}px)`,
-                }}
-              >
-                {testimonials.map((tItem, idx) => {
-                  return (
-                    <div
-                      key={tItem.id}
-                      // Di HP lebar penuh, di Laptop dikunci 440px per card-nya biar muat 3 berjajar pas
-                      className="w-full sm:w-[440px] shrink-0 border border-slate-800/80 rounded-2xl p-5 sm:p-6 text-left relative bg-[#1c1f26] flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-all duration-300 hover:border-blue-500 text-white"
-                    >
-                      <div>
-                        <div className="flex items-center gap-1 mb-3 text-orange-500">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={13} fill="currentColor" />
-                          ))}
-                          <span className="text-[11px] font-bold text-slate-300 ml-1">
-                            5.0
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold leading-relaxed mb-5 sm:mb-6 text-white">
-                          "{tItem.quote}"
-                        </p>
+          {/* Slider wrapper — overflow hidden agar card di luar tidak bocor */}
+          <div className="w-full overflow-hidden">
+            <div
+              className="flex gap-4 sm:gap-6 items-stretch transition-transform duration-500 ease-out py-4 sm:py-6 px-4 sm:px-6"
+              style={{
+                transform: `translateX(calc(50% - 45vw - (${currentIdx} * (90vw + 16px))))`,
+              }}
+            >
+              {testimonials.map((tItem, idx) => {
+                const isActive = idx === currentIdx;
+                return (
+                  <div
+                    key={tItem.id}
+                    className={`w-[90vw] sm:w-[440px] shrink-0 border rounded-2xl p-5 sm:p-6 text-left relative transition-all duration-500 flex flex-col justify-between min-h-[200px] sm:min-h-[220px] bg-[#1c1f26] ${
+                      isActive
+                        ? "border-blue-500 opacity-100 scale-100 z-10 shadow-2xl shadow-blue-500/10"
+                        : "border-slate-800/80 opacity-40 scale-95"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1 mb-3 text-orange-500">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={13} fill="currentColor" />
+                        ))}
+                        <span className="text-[11px] font-bold text-slate-300 ml-1">
+                          5.0
+                        </span>
                       </div>
-                      <div className="flex justify-between items-end border-t border-slate-800/60 pt-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden uppercase">
-                            {tItem.name.substring(0, 2)}
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-white">
-                              {tItem.name}
-                            </h4>
-                            <p className="text-[10px] text-slate-300 font-medium">
-                              {tItem.company}
-                            </p>
-                          </div>
+                      <p className="text-xs font-semibold leading-relaxed mb-5 sm:mb-6 text-white">
+                        "{tItem.quote}"
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-end border-t border-slate-800/60 pt-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden uppercase">
+                          {tItem.name.substring(0, 2)}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-white">
+                            {tItem.name}
+                          </h4>
+                          <p className="text-[10px] text-slate-300 font-medium">
+                            {tItem.company}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Tombol Navigasi Slider */}
-          <div className="flex justify-center items-center gap-3 mt-5 sm:mt-6 px-6">
+          {/* Tombol navigasi slider */}
+          <div className="flex justify-center items-center gap-3 mt-4 sm:mt-6 px-6">
             <button
               onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))}
               disabled={currentIdx === 0}
@@ -814,8 +804,7 @@ export default function App() {
             >
               <ArrowLeft size={16} />
             </button>
-
-            {/* Indikator Titik (Dots) */}
+            {/* Dot indicator */}
             <div className="flex gap-1.5">
               {testimonials.map((_, idx) => (
                 <button
@@ -825,7 +814,6 @@ export default function App() {
                 />
               ))}
             </div>
-
             <button
               onClick={() =>
                 setCurrentIdx((prev) =>
@@ -891,7 +879,6 @@ export default function App() {
                   className={`w-full border rounded-xl p-2.5 outline-none transition-all ${isDarkMode ? "bg-[#11141c] border-slate-800 text-white focus:border-blue-500" : "bg-white border-slate-200 text-slate-900 focus:border-blue-500"}`}
                 />
               </div>
-
               <div>
                 <label
                   className={`block mb-1 ${isDarkMode ? "text-slate-400" : "text-slate-800 font-bold"}`}
@@ -899,7 +886,7 @@ export default function App() {
                   {t[lang].brief.labelReq}
                 </label>
                 <textarea
-                  rows="4"
+                  rows="3"
                   value={briefForm.systemRequirement}
                   onChange={(e) =>
                     setBriefForm({
@@ -911,42 +898,46 @@ export default function App() {
                   className={`w-full border rounded-xl p-2.5 outline-none resize-none transition-all ${isDarkMode ? "bg-[#11141c] border-slate-800 text-white focus:border-blue-500" : "bg-white border-slate-200 text-slate-900 focus:border-blue-500"}`}
                 ></textarea>
               </div>
-
-              {/* Teks Informasi Skema Harga Custom (Menggantikan Pilihan Estimasi Anggaran Lama) */}
-              <div
-                className={`p-3.5 rounded-xl border flex flex-col gap-1 ${isDarkMode ? "bg-[#11141c] border-blue-900/50" : "bg-blue-50/70 border-blue-100"}`}
-              >
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`text-[11px] font-black ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}
-                  >
-                    Harga Pengerjaan
-                  </span>
-                  <span
-                    className={`text-xs font-black px-2 py-0.5 rounded-md ${isDarkMode ? "bg-blue-950 text-blue-300" : "bg-blue-100 text-blue-700"}`}
-                  >
-                    Mulai Rp 700k
-                  </span>
-                </div>
-                <p
-                  className={`text-[10px] leading-relaxed font-medium mt-0.5 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+              <div>
+                <label
+                  className={`block mb-1 ${isDarkMode ? "text-slate-400" : "text-slate-800 font-bold"}`}
                 >
-                  Estimasi biaya akhir akan disesuaikan sepenuhnya berdasarkan
-                  kompleksitas fitur dan kebutuhan sistem yang Anda inginkan.
-                </p>
+                  {t[lang].brief.labelBudget}
+                </label>
+                <select
+                  value={briefForm.estimatedBudget}
+                  onChange={(e) =>
+                    setBriefForm({
+                      ...briefForm,
+                      estimatedBudget: e.target.value,
+                    })
+                  }
+                  className={`w-full border rounded-xl p-2.5 outline-none transition-all ${isDarkMode ? "bg-[#11141c] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900"}`}
+                >
+                  <option value="Starter - Rp 500.000">
+                    Starter - Rp 500.000
+                  </option>
+                  <option value="Basic Hosting - Rp 1.000.000">
+                    Basic Hosting - Rp 1.000.000
+                  </option>
+                  <option value="Full Setup - Rp 1.200.000+">
+                    Full Setup - Rp 1.200.000+
+                  </option>
+                  <option value="Custom Enterprise - Rp 5.000.000+">
+                    Custom Enterprise - Rp 5.000.000+
+                  </option>
+                </select>
               </div>
-
-              {/* Tombol Pengiriman */}
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <button
                   onClick={handleSendWhatsApp}
-                  className="py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-[11px] shadow-lg shadow-emerald-500/10 transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-[11px]"
                 >
                   <MessageCircle size={14} /> {t[lang].brief.btnWA}
                 </button>
                 <button
                   onClick={handleSendGmail}
-                  className="py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-[11px] shadow-lg shadow-blue-500/10 transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-[11px]"
                 >
                   <Mail size={14} /> {t[lang].brief.btnGmail}
                 </button>
@@ -955,6 +946,7 @@ export default function App() {
           </div>
         </div>
       </section>
+
       {/* SEKSI FAQ */}
       <section
         id="faq"
@@ -1016,7 +1008,6 @@ export default function App() {
         className={`w-full py-14 sm:py-16 px-4 sm:px-6 lg:px-20 border-t transition-colors duration-300 ${isDarkMode ? "bg-[#112E81] border-slate-900" : "bg-white border-blue-100"}`}
       >
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
-          {/* Kolom 1: Profil Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
             <div
               className={`font-bold text-sm font-mono flex items-center gap-2 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1033,7 +1024,6 @@ export default function App() {
             </p>
           </div>
 
-          {/* Kolom 2: Navigasi */}
           <div>
             <h4
               className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1043,24 +1033,33 @@ export default function App() {
             <ul
               className={`space-y-2 text-[11px] font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
             >
-              {[
-                { id: "showcase", label: t[lang].footer.srv },
-                { id: "brief", label: t[lang].footer.start },
-                { id: "testimoni", label: t[lang].footer.port },
-              ].map((item) => (
-                <li key={item.id}>
-                  <button
-                    onClick={() => scrollToSection(item.id)}
-                    className="hover:text-blue-500 transition-colors text-left"
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
+              <li>
+                <button
+                  onClick={() => scrollToSection("showcase")}
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  {t[lang].footer.srv}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => scrollToSection("brief")}
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  {t[lang].footer.start}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => scrollToSection("testimoni")}
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  {t[lang].footer.port}
+                </button>
+              </li>
             </ul>
           </div>
 
-          {/* Kolom 3: Kontak & Git */}
           <div>
             <h4
               className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1068,42 +1067,32 @@ export default function App() {
               {t[lang].footer.contactTitle}
             </h4>
             <div
-              className={`text-[11px] font-semibold space-y-2.5 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
+              className={`text-[11px] font-semibold space-y-2 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
             >
-              <p>✉️ xafdevstudio@gmail.com</p>
-              <p>💬 +62 831-2919-5737</p>
+              <p>kontak@xaf7studio.com</p>
+              <p>{t[lang].footer.loc}</p>
             </div>
           </div>
 
-          {/* Kolom 4: Hubungi via WA */}
-          <div className="col-span-2 md:col-span-1 flex flex-col justify-between h-full text-center md:text-left">
-            <div>
-              <h4
-                className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
-              >
-                Konsultasi Cepat
-              </h4>
-              <p
-                className={`text-[11px] mb-4 leading-relaxed font-medium ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
-              >
-                Punya konsep aplikasi atau butuh sistem kustom? Diskusikan
-                langsung sekarang.
-              </p>
-            </div>
-            <div className="w-full flex justify-center md:justify-start">
-              <a
-                href="https://wa.me/6283129195737"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-xs font-bold py-3 px-5 rounded-full w-full max-w-[240px] transition-all duration-300 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transform hover:-translate-y-0.5 active:translate-y-0 mx-auto md:mx-0"
-              >
-                <span className="text-sm">💬</span> Chat via WhatsApp
-              </a>
+          <div>
+            <h4
+              className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
+              {t[lang].footer.infoTitle}
+            </h4>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                placeholder={t[lang].footer.holderEmail}
+                className={`w-full text-[11px] p-2 rounded-lg border outline-none ${isDarkMode ? "bg-[#0b0e14] border-slate-800 text-white" : "bg-white border-blue-100 text-slate-900 focus:border-blue-500"}`}
+              />
+              <button className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-all shrink-0">
+                ➔
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Baris Hak Cipta & Ketentuan */}
         <div
           className={`max-w-7xl mx-auto mt-10 sm:mt-12 pt-6 sm:pt-8 border-t flex flex-col md:flex-row justify-between items-center text-[10px] font-bold gap-3 sm:gap-4 ${isDarkMode ? "border-slate-900 text-slate-500" : "border-slate-100 text-slate-600"}`}
         >
@@ -1120,6 +1109,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+
       {/* CHATBOT */}
       <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 font-sans">
         {isChatOpen ? (
