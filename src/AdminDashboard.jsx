@@ -25,24 +25,23 @@ export default function AdminDashboard({
   setTestimonials,
   onLogout,
   isDarkMode,
-  toggleDarkMode, // Kita gunakan fungsi dari parent agar sinkron total
+  toggleDarkMode,
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // State untuk mode edit data
   const [editingProject, setEditingProject] = useState(null);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
 
   const [projForm, setProjForm] = useState({
     title: "",
     category: "",
-    desc: "",
+    desc: "", // State internal form tetap pakai 'desc' tidak masalah
     tech: "Laravel + React",
     speed: "98/100",
     status: "Production Ready",
     color: "from-blue-600 to-indigo-700",
-    image_url: "", // Tambahkan ini agar bisa menampung URL foto web projek
+    image_url: "",
   });
 
   const [testiForm, setTestiForm] = useState({
@@ -58,7 +57,9 @@ export default function AdminDashboard({
   const [savingTesti, setSavingTesti] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Fungsi Tambah / Update Projek
+  // ==========================================
+  // FUNGSI TAMBAH / UPDATE PROJEK (FIXED)
+  // ==========================================
   const handleSaveProject = async (e) => {
     e.preventDefault();
     setSavingProj(true);
@@ -71,12 +72,12 @@ export default function AdminDashboard({
         month: "long",
         year: "numeric",
       }),
-      desc: projForm.desc,
+      description: projForm.desc, // ✅ SELESAI DIPERBAIKI: Menggunakan 'description' sesuai kolom SQL database
       tech: projForm.tech,
       speed: projForm.speed,
       status: projForm.status,
       color: projForm.color,
-      image_url: projForm.image_url, // Kirimkan data URL foto ke database
+      image_url: projForm.image_url,
     };
 
     if (editingProject) {
@@ -125,7 +126,7 @@ export default function AdminDashboard({
       speed: "98/100",
       status: "Production Ready",
       color: "from-blue-600 to-indigo-700",
-      image_url: "", // Reset field foto projek setelah submit
+      image_url: "",
     });
   };
 
@@ -135,12 +136,12 @@ export default function AdminDashboard({
     setProjForm({
       title: p.title || "",
       category: p.category || "",
-      desc: p.desc || "",
+      desc: p.description || p.desc || "", // ✅ DISESUAIKAN: mengambil dari data database 'description'
       tech: p.tech || "Laravel + React",
       speed: p.speed || "98/100",
       status: p.status || "Production Ready",
       color: p.color || "from-blue-600 to-indigo-700",
-      image_url: p.image_url || "", // Ambil URL foto yang ada saat mode edit
+      image_url: p.image_url || "",
     });
   };
 
@@ -158,7 +159,9 @@ export default function AdminDashboard({
     if (editingProject?.id === id) setEditingProject(null);
   };
 
-  // Fungsi Tambah / Update Testimonial
+  // ==========================================
+  // FUNGSI TAMBAH / UPDATE TESTIMONIAL
+  // ==========================================
   const handleSaveTestimonial = async (e) => {
     e.preventDefault();
     setSavingTesti(true);
@@ -169,11 +172,10 @@ export default function AdminDashboard({
       company: testiForm.company,
       tags: testiForm.tags,
       rating: testiForm.rating,
-      avatar_url: testiForm.avatar_url,
+      // Jika di tabel SQL belum ada avatar_url, biarkan kosong atau sesuaikan dengan struktur database
     };
 
     if (editingTestimonial) {
-      // MODE EDIT (UPDATE)
       const { data, error } = await supabase
         .from("testimonials")
         .update(testiData)
@@ -193,7 +195,6 @@ export default function AdminDashboard({
       setEditingTestimonial(null);
       alert("Testimoni berhasil diperbarui!");
     } else {
-      // MODE TAMBAH BARU (INSERT)
       const { data, error } = await supabase
         .from("testimonials")
         .insert([testiData])
@@ -220,7 +221,6 @@ export default function AdminDashboard({
     });
   };
 
-  // Fungsi Masuk Mode Edit Testimoni
   const startEditTestimonial = (t) => {
     setEditingTestimonial(t);
     setTestiForm({
