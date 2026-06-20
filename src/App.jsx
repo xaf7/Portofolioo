@@ -491,7 +491,7 @@ export default function App() {
     >
       {/* NAVBAR */}
       <nav
-        className={`fixed top-0 left-0 w-full z-50 px-4 lg:px-20 py-4 flex items-center justify-between border-b transition-colors duration-300 ${isDarkMode ? "bg-[#020408]/90 border-slate-900 text-white" : "bg-white border-blue-500 text-slate-900"} backdrop-blur-md`}
+        className={`fixed top-0 left-0 w-full z-50 px-4 lg:px-20 py-4 flex items-center justify-between border-b transition-colors duration-300 ${isDarkMode ? "bg-[#1d4ed8]/90 border-blue-700 text-white" : "bg-white border-blue-500 text-slate-900"} backdrop-blur-md`}
       >
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <img
@@ -506,8 +506,16 @@ export default function App() {
 
         {/* Nav links — hidden on mobile */}
         <div
-          className={`hidden md:flex items-center gap-8 text-[12px] font-semibold tracking-wide transition-colors duration-300 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
+          className={`hidden md:flex items-center gap-8 text-[12px] font-semibold tracking-wide transition-colors duration-300 ${isDarkMode ? "text-blue-100" : "text-slate-600"}`}
         >
+          {/* Tombol Home mengarah ke seksi hero */}
+          <button
+            onClick={() => scrollToSection("hero")}
+            className="hover:text-blue-500 transition-colors"
+          >
+            {t[lang].nav.home}
+          </button>
+
           <button
             onClick={() => scrollToSection("showcase")}
             className="hover:text-blue-500 transition-colors"
@@ -538,7 +546,7 @@ export default function App() {
           {/* Tombol bahasa */}
           <button
             onClick={() => setLang(lang === "id" ? "en" : "id")}
-            className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-[11px] font-bold ${isDarkMode ? "border-slate-800 hover:bg-slate-900 bg-slate-950 text-blue-400" : "border-slate-200 hover:bg-slate-100 bg-white text-blue-600"}`}
+            className={`p-2 rounded-xl border transition-all flex items-center gap-1 text-[11px] font-bold ${isDarkMode ? "border-blue-500 hover:bg-blue-600 bg-blue-800 text-white" : "border-slate-200 hover:bg-slate-100 bg-white text-blue-600"}`}
             title="Switch Language"
           >
             <Languages size={13} />
@@ -548,15 +556,15 @@ export default function App() {
           {/* Tombol dark mode */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-xl border transition-all ${isDarkMode ? "border-slate-800 hover:bg-slate-900 bg-slate-950 text-yellow-400" : "border-slate-200 hover:bg-slate-100 bg-white text-slate-700"}`}
+            className={`p-2 rounded-xl border transition-all ${isDarkMode ? "border-blue-500 hover:bg-blue-600 bg-blue-800 text-yellow-400" : "border-slate-200 hover:bg-slate-100 bg-white text-slate-700"}`}
           >
             {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Tombol Contact (selalu tampil, Login disembunyikan) */}
+          {/* Tombol Contact */}
           <button
             onClick={() => scrollToSection("brief")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all shadow-sm"
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all shadow-sm ${isDarkMode ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
           >
             {t[lang].nav.contact}
           </button>
@@ -598,39 +606,12 @@ export default function App() {
             </button>
           </div>
 
-          {/* VISUAL MOCKUP */}
           <div className="relative flex justify-center items-center w-full mt-8 md:mt-0">
-            <div className="w-full max-w-md bg-black/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl h-72 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <div className="flex gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                </div>
-                <div className="bg-white/10 rounded-md px-4 py-0.5 text-[9px] text-white/40 font-mono">
-                  xaf7studio.com/live-preview
-                </div>
-                <div className="w-4"></div>
-              </div>
-              <div className="flex flex-col gap-3 my-auto">
-                <div className="w-3/4 h-4 bg-gradient-to-r from-blue-500 to-transparent rounded"></div>
-                <div className="w-1/2 h-3 bg-white/20 rounded"></div>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
-                    <div className="w-full h-2 bg-blue-400/50 rounded mb-1"></div>
-                    <div className="w-2/3 h-1 bg-white/20 rounded"></div>
-                  </div>
-                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
-                    <div className="w-full h-2 bg-blue-500/50 rounded mb-1"></div>
-                    <div className="w-1/2 h-1 bg-white/20 rounded"></div>
-                  </div>
-                  <div className="h-16 bg-white/5 border border-white/10 rounded-lg p-2">
-                    <div className="w-full h-2 bg-emerald-400/50 rounded mb-1"></div>
-                    <div className="w-3/4 h-1 bg-white/20 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <img
+              src="./tes.png"
+              alt="Hero Illustration"
+              className="w-full max-w-xs md:max-w-sm h-auto object-contain rounded-2xl drop-shadow-2xl"
+            />
           </div>
         </div>
       </section>
