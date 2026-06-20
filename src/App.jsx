@@ -435,7 +435,7 @@ export default function App() {
       alert(t[lang].brief.alertValidate);
       return;
     }
-    const nomorWA = "6281234567890";
+    const nomorWA = "6283129195737";
     window.open(
       `https://api.whatsapp.com/send?phone=${nomorWA}&text=${generateBriefText()}`,
       "_blank",
@@ -448,7 +448,7 @@ export default function App() {
       alert(t[lang].brief.alertValidate);
       return;
     }
-    const emailTujuan = "kontak@xaf7studio.com";
+    const emailTujuan = "xafdevstudio@gmail.com";
     const subjectTitle =
       lang === "id" ? "Brief Proyek Baru" : "New Project Brief";
     window.location.href = `mailto:${emailTujuan}?subject=${subjectTitle} - ${encodeURIComponent(briefForm.domainName)}&body=${generateBriefText()}`;
@@ -1084,18 +1084,8 @@ export default function App() {
             <div
               className={`text-[11px] font-semibold space-y-2.5 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
             >
-              <p>✉️ sskorpion642@gmail.com</p>
-              <p>📍 {t[lang].footer.loc}</p>
-              <div className="pt-1">
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-blue-500 inline-flex items-center gap-1.5 transition-colors"
-                >
-                  📁 GitHub
-                </a>
-              </div>
+              <p>✉️ xafdevstudio@gmail.com</p>
+              <p>💬 +62 831-2919-5737</p>
             </div>
           </div>
 
@@ -1115,7 +1105,7 @@ export default function App() {
               </p>
             </div>
             <a
-              href="https://wa.me/6283129195727"
+              href="https://wa.me/6283129195737"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-xs font-bold py-3 px-5 rounded-full w-full transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transform hover:-translate-y-0.5 active:translate-y-0"
