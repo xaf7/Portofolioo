@@ -13,7 +13,8 @@ import {
   Moon,
   Menu,
   X,
-  Image,
+  Image as ImageIcon,
+  Edit3,
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
@@ -23,16 +24,15 @@ export default function AdminDashboard({
   testimonials,
   setTestimonials,
   onLogout,
-  isDarkMode: externalDarkMode,
+  isDarkMode,
+  toggleDarkMode, // Kita gunakan fungsi dari parent agar sinkron total
 }) {
-  // State manajemen navigasi tab & responsive mobile menu
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // State lokal untuk memastikan Dark Mode bertransisi jika parent belum mengikat fungsi state global
-  const [localDarkMode, setLocalDarkMode] = useState(false);
-  const isDark =
-    externalDarkMode !== undefined ? externalDarkMode : localDarkMode;
+  // State untuk mode edit data
+  const [editingProject, setEditingProject] = useState(null);
+  const [editingTestimonial, setEditingTestimonial] = useState(null);
 
   const [projForm, setProjForm] = useState({
     title: "",
@@ -44,7 +44,6 @@ export default function AdminDashboard({
     color: "from-blue-600 to-indigo-700",
   });
 
-  // Menambahkan field avatar / foto web ke dalam testimoni
   const [testiForm, setTestiForm] = useState({
     quote: "",
     name: "",
@@ -58,11 +57,12 @@ export default function AdminDashboard({
   const [savingTesti, setSavingTesti] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  const handleCreateProject = async (e) => {
+  // Fungsi Tambah / Update Projek
+  const handleSaveProject = async (e) => {
     e.preventDefault();
     setSavingProj(true);
 
-    const newProjData = {
+    const projData = {
       title: projForm.title,
       category: projForm.category,
       date: new Date().toLocaleDateString("en-GB", {
@@ -77,19 +77,44 @@ export default function AdminDashboard({
       color: projForm.color,
     };
 
-    const { data, error } = await supabase
-      .from("projects")
-      .insert([newProjData])
-      .select();
+    if (editingProject) {
+      // MODE EDIT (UPDATE)
+      const { data, error } = await supabase
+        .from("projects")
+        .update(projData)
+        .eq("id", editingProject.id)
+        .select();
 
-    setSavingProj(false);
+      setSavingProj(false);
 
-    if (error) {
-      alert("Gagal menyimpan ke database: " + error.message);
-      return;
+      if (error) {
+        alert("Gagal mengupdate database: " + error.message);
+        return;
+      }
+
+      setProjects(
+        projects.map((p) => (p.id === editingProject.id ? data[0] : p)),
+      );
+      setEditingProject(null);
+      alert("Projek berhasil diperbarui!");
+    } else {
+      // MODE TAMBAH BARU (INSERT)
+      const { data, error } = await supabase
+        .from("projects")
+        .insert([projData])
+        .select();
+
+      setSavingProj(false);
+
+      if (error) {
+        alert("Gagal menyimpan ke database: " + error.message);
+        return;
+      }
+
+      setProjects([data[0], ...projects]);
+      alert("Projek berhasil dipublikasikan!");
     }
 
-    setProjects([data[0], ...projects]);
     setProjForm({
       title: "",
       category: "",
@@ -99,10 +124,24 @@ export default function AdminDashboard({
       status: "Production Ready",
       color: "from-blue-600 to-indigo-700",
     });
-    alert("Projek berhasil dipublikasikan!");
+  };
+
+  // Fungsi Masuk Mode Edit Projek
+  const startEditProject = (p) => {
+    setEditingProject(p);
+    setProjForm({
+      title: p.title || "",
+      category: p.category || "",
+      desc: p.desc || "",
+      tech: p.tech || "Laravel + React",
+      speed: p.speed || "98/100",
+      status: p.status || "Production Ready",
+      color: p.color || "from-blue-600 to-indigo-700",
+    });
   };
 
   const handleDeleteProject = async (id) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus projek ini?")) return;
     setDeletingId(id);
     const { error } = await supabase.from("projects").delete().eq("id", id);
     setDeletingId(null);
@@ -112,34 +151,61 @@ export default function AdminDashboard({
       return;
     }
     setProjects(projects.filter((item) => item.id !== id));
+    if (editingProject?.id === id) setEditingProject(null);
   };
 
-  const handleCreateTestimonial = async (e) => {
+  // Fungsi Tambah / Update Testimonial
+  const handleSaveTestimonial = async (e) => {
     e.preventDefault();
     setSavingTesti(true);
 
-    const newTestiData = {
+    const testiData = {
       quote: testiForm.quote,
       name: testiForm.name,
       company: testiForm.company,
       tags: testiForm.tags,
       rating: testiForm.rating,
-      avatar_url: testiForm.avatar_url, // Menyimpan link foto web / klien ke database
+      avatar_url: testiForm.avatar_url,
     };
 
-    const { data, error } = await supabase
-      .from("testimonials")
-      .insert([newTestiData])
-      .select();
+    if (editingTestimonial) {
+      // MODE EDIT (UPDATE)
+      const { data, error } = await supabase
+        .from("testimonials")
+        .update(testiData)
+        .eq("id", editingTestimonial.id)
+        .select();
 
-    setSavingTesti(false);
+      setSavingTesti(false);
 
-    if (error) {
-      alert("Gagal menyimpan ke database: " + error.message);
-      return;
+      if (error) {
+        alert("Gagal mengupdate database: " + error.message);
+        return;
+      }
+
+      setTestimonials(
+        testimonials.map((t) => (t.id === editingTestimonial.id ? data[0] : t)),
+      );
+      setEditingTestimonial(null);
+      alert("Testimoni berhasil diperbarui!");
+    } else {
+      // MODE TAMBAH BARU (INSERT)
+      const { data, error } = await supabase
+        .from("testimonials")
+        .insert([testiData])
+        .select();
+
+      setSavingTesti(false);
+
+      if (error) {
+        alert("Gagal menyimpan ke database: " + error.message);
+        return;
+      }
+
+      setTestimonials([data[0], ...testimonials]);
+      alert("Testimoni berhasil ditambahkan!");
     }
 
-    setTestimonials([data[0], ...testimonials]);
     setTestiForm({
       quote: "",
       name: "",
@@ -148,10 +214,23 @@ export default function AdminDashboard({
       rating: "5.0",
       avatar_url: "",
     });
-    alert("Testimoni berhasil ditambahkan!");
+  };
+
+  // Fungsi Masuk Mode Edit Testimoni
+  const startEditTestimonial = (t) => {
+    setEditingTestimonial(t);
+    setTestiForm({
+      quote: t.quote || "",
+      name: t.name || "",
+      company: t.company || "",
+      tags: t.tags || "SaaS Enterprise",
+      rating: t.rating || "5.0",
+      avatar_url: t.avatar_url || "",
+    });
   };
 
   const handleDeleteTestimonial = async (id) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus testimonial ini?")) return;
     setDeletingId(id);
     const { error } = await supabase.from("testimonials").delete().eq("id", id);
     setDeletingId(null);
@@ -161,30 +240,21 @@ export default function AdminDashboard({
       return;
     }
     setTestimonials(testimonials.filter((item) => item.id !== id));
+    if (editingTestimonial?.id === id) setEditingTestimonial(null);
   };
 
   return (
     <div
-      className={`w-full min-h-screen font-sans flex flex-col lg:flex-row transition-colors duration-300 ${isDark ? "bg-[#232333] text-[#cfcfe0]" : "bg-[#f5f5f9] text-[#697a8d]"}`}
+      className={`w-full min-h-screen font-sans flex flex-col lg:flex-row transition-colors duration-300 ${isDarkMode ? "bg-[#181924] text-[#cfcfe0]" : "bg-[#f5f5f9] text-[#697a8d]"}`}
     >
-      {/* ================= SIDEBAR NAVIGASI (DESKTOP) ================= */}
+      {/* SIDEBAR NAVIGASI (DESKTOP) */}
       <aside className="w-64 min-h-screen hidden lg:flex flex-col shrink-0 bg-blue-600 text-white shadow-xl">
-        {/* Brand Header */}
         <div className="h-16 flex items-center gap-3 px-6 border-b border-white/10">
-          <img
-            src="/icon.png"
-            alt="Logo Xaf"
-            className="w-7 h-7 object-contain bg-white/20 p-0.5 rounded-lg shadow-sm"
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
           <span className="text-xl font-bold tracking-tight text-white">
-            Xaf
+            XAF7 STUDIO
           </span>
         </div>
 
-        {/* Menu Items */}
         <div className="flex-1 px-4 py-6 space-y-1.5">
           <div className="text-[11px] font-bold text-blue-200 uppercase tracking-wider px-3 mb-2 opacity-80">
             Main
@@ -217,45 +287,33 @@ export default function AdminDashboard({
         </div>
       </aside>
 
-      {/* ================= TOP NAV BAR & HEADER CONTROLLER ================= */}
+      {/* CONTENT WRAPPER */}
       <div className="flex-1 flex flex-col min-w-0">
         <header
-          className={`h-16 px-6 flex items-center justify-between sticky top-0 z-50 backdrop-blur border-b transition-colors duration-300 ${isDark ? "bg-[#2b2c40]/90 border-[#363853]" : "bg-white/90 border-slate-200"}`}
+          className={`h-16 px-6 flex items-center justify-between sticky top-0 z-50 backdrop-blur border-b transition-colors duration-300 ${isDarkMode ? "bg-[#212330]/90 border-[#2d3042]" : "bg-white/90 border-slate-200"}`}
         >
-          {/* Sisi Kiri: Tombol Menu Hamburger untuk Mobile */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 rounded-lg lg:hidden transition-all ${isDark ? "hover:bg-slate-700 text-white" : "hover:bg-slate-100 text-slate-700"}`}
+              className={`p-2 rounded-lg lg:hidden transition-all ${isDarkMode ? "hover:bg-slate-700 text-white" : "hover:bg-slate-100 text-slate-700"}`}
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <div className="lg:hidden flex items-center gap-2">
-              <img
-                src="/icon.png"
-                alt="Logo"
-                className="w-6 h-6 object-contain"
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
-              />
-              <span
-                className={`font-bold text-lg ${isDark ? "text-white" : "text-slate-800"}`}
-              >
-                Xaf
-              </span>
-            </div>
+            <span
+              className={`font-bold text-lg lg:hidden ${isDarkMode ? "text-white" : "text-slate-800"}`}
+            >
+              Xaf
+            </span>
           </div>
 
-          {/* Sisi Kanan: Toggle Dark Mode & Profil Pengguna */}
           <div className="flex items-center gap-4">
-            {/* Tombol Switch Tema Malam / Siang (Sekarang Berfungsi) */}
+            {/* Menggunakan fungsi toggle global agar sinkron dengan App.jsx */}
             <button
-              onClick={() => setLocalDarkMode(!localDarkMode)}
-              className={`p-2 rounded-lg border transition-all ${isDark ? "border-[#434460] text-amber-400 bg-slate-800" : "border-slate-200 text-slate-600 bg-slate-50"}`}
-              title={isDark ? "Aktifkan Mode Terang" : "Aktifkan Mode Malam"}
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-lg border transition-all ${isDarkMode ? "border-[#434460] text-amber-400 bg-slate-800" : "border-slate-200 text-slate-600 bg-slate-50"}`}
+              title={isDarkMode ? "Mode Terang" : "Mode Malam"}
             >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
             <div className="h-8 w-px bg-slate-300 dark:bg-slate-700"></div>
@@ -263,7 +321,7 @@ export default function AdminDashboard({
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p
-                  className={`text-xs font-bold ${isDark ? "text-white" : "text-[#566a7f]"}`}
+                  className={`text-xs font-bold ${isDarkMode ? "text-white" : "text-[#566a7f]"}`}
                 >
                   XAF7 ENGINE
                 </p>
@@ -272,7 +330,6 @@ export default function AdminDashboard({
               <button
                 onClick={onLogout}
                 className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-all"
-                title="Keluar Aplikasi"
               >
                 <LogOut size={16} />
               </button>
@@ -280,9 +337,9 @@ export default function AdminDashboard({
           </div>
         </header>
 
-        {/* ================= DROPDOWN MENU UNTUK VERSI MOBILE ================= */}
+        {/* MOBILE MENU */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden w-full bg-blue-600 text-white animate-fadeIn border-b border-blue-700 shadow-lg">
+          <div className="lg:hidden w-full bg-blue-600 text-white border-b border-blue-700 shadow-lg">
             <div className="px-4 py-3 space-y-1 text-sm font-medium">
               <button
                 onClick={() => {
@@ -315,113 +372,67 @@ export default function AdminDashboard({
           </div>
         )}
 
-        {/* CONTAINER UTAMA HALAMAN */}
+        {/* MAIN ROUTER PANELS */}
         <main className="flex-1 p-6 space-y-6 overflow-y-auto max-w-7xl w-full mx-auto">
-          {/* TAB 1: DASHBOARD UTAMA */}
           {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Banner Selamat Datang */}
-                <div
-                  className={`xl:col-span-2 p-6 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-colors ${isDark ? "bg-[#2b2c40]" : "bg-white"}`}
-                >
-                  <div className="space-y-2 max-w-md">
-                    <h2
-                      className={`text-lg font-bold ${isDark ? "text-white" : "text-blue-600"}`}
-                    >
-                      Selamat Datang Kembali, Administrator! 🎉
-                    </h2>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Manajemen sistem basis data terintegrasi real-time.
-                      Silakan pilih menu spesifik di bilah samping atau atas
-                      untuk memodifikasi komponen portofolio Anda.
-                    </p>
-                  </div>
-                  <div className="mt-4">
-                    <button className="px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 text-xs font-bold rounded-lg transition-all border border-blue-600/20">
-                      Lihat Log Database
-                    </button>
-                  </div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div
+                className={`xl:col-span-2 p-6 rounded-xl shadow-sm flex flex-col justify-between ${isDarkMode ? "bg-[#212330]" : "bg-white"}`}
+              >
+                <div className="space-y-2">
+                  <h2
+                    className={`text-lg font-bold ${isDarkMode ? "text-white" : "text-blue-600"}`}
+                  >
+                    Selamat Datang Kembali, Administrator! 🎉
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Sistem basis data portofolio real-time aman terkendali.
+                    Gunakan navigasi panel untuk merubah isi landing page.
+                  </p>
                 </div>
+              </div>
 
-                {/* Kartu Statistik */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div
-                    className={`p-5 rounded-xl shadow-sm flex flex-col justify-between cursor-pointer border hover:border-blue-500/40 transition-all ${isDark ? "bg-[#2b2c40] border-transparent" : "bg-white border-transparent"}`}
-                    onClick={() => setActiveTab("projects")}
-                  >
-                    <div className="p-2.5 bg-blue-500/10 text-blue-600 rounded-lg w-10">
-                      <Briefcase size={20} />
-                    </div>
-                    <div className="mt-4">
-                      <span className="text-xs text-slate-400 block font-semibold">
-                        Total Projek
-                      </span>
-                      <h3
-                        className={`text-2xl font-bold mt-1 ${isDark ? "text-white" : "text-slate-700"}`}
-                      >
-                        {projects.length}
-                      </h3>
-                      <span className="text-[10px] text-blue-500 font-medium mt-1 inline-block">
-                        Buka Projek →
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`p-5 rounded-xl shadow-sm flex flex-col justify-between cursor-pointer border hover:border-blue-500/40 transition-all ${isDark ? "bg-[#2b2c40] border-transparent" : "bg-white border-transparent"}`}
-                    onClick={() => setActiveTab("testimonials")}
-                  >
-                    <div className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-lg w-10">
-                      <UserCheck size={20} />
-                    </div>
-                    <div className="mt-4">
-                      <span className="text-xs text-slate-400 block font-semibold">
-                        Testimonial
-                      </span>
-                      <h3
-                        className={`text-2xl font-bold mt-1 ${isDark ? "text-white" : "text-slate-700"}`}
-                      >
-                        {testimonials.length}
-                      </h3>
-                      <span className="text-[10px] text-emerald-500 font-medium mt-1 inline-block">
-                        Buka Ulasan →
-                      </span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  onClick={() => setActiveTab("projects")}
+                  className={`p-5 rounded-xl cursor-pointer border hover:border-blue-500/40 transition-all ${isDarkMode ? "bg-[#212330] border-transparent" : "bg-white"}`}
+                >
+                  <Briefcase className="text-blue-500" size={24} />
+                  <p className="text-xs text-slate-400 mt-2">Total Projek</p>
+                  <h3 className="text-2xl font-bold">{projects.length}</h3>
+                </div>
+                <div
+                  onClick={() => setActiveTab("testimonials")}
+                  className={`p-5 rounded-xl cursor-pointer border hover:border-blue-500/40 transition-all ${isDarkMode ? "bg-[#212330] border-transparent" : "bg-white"}`}
+                >
+                  <UserCheck className="text-emerald-500" size={24} />
+                  <p className="text-xs text-slate-400 mt-2">Testimonial</p>
+                  <h3 className="text-2xl font-bold">{testimonials.length}</h3>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: HALAMAN FORM PROJEK KERJA */}
+          {/* PANEL PROJEK */}
           {activeTab === "projects" && (
             <div
-              className={`rounded-xl shadow-sm p-6 space-y-5 border transition-colors ${isDark ? "bg-[#2b2c40] border-transparent" : "bg-white border-slate-100"}`}
+              className={`rounded-xl p-6 space-y-5 border ${isDarkMode ? "bg-[#212330] border-transparent" : "bg-white border-slate-100"}`}
             >
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-500/10">
-                <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
-                  <FolderPlus size={18} />
-                </div>
-                <div>
-                  <h3
-                    className={`text-sm font-bold ${isDark ? "text-white" : "text-[#566a7f]"}`}
-                  >
-                    Manajemen Postingan Projek
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    Unggah portofolio arsitektur software Anda terbaru
-                  </p>
-                </div>
+              <div className="pb-3 border-b border-slate-500/10">
+                <h3 className="text-sm font-bold">
+                  {editingProject
+                    ? "⚡ Sunting Projek Aktif"
+                    : "➕ Tambahkan Postingan Projek"}
+                </h3>
               </div>
 
               <form
-                onSubmit={handleCreateProject}
+                onSubmit={handleSaveProject}
                 className="space-y-4 text-xs font-semibold"
               >
                 <div>
-                  <label className="block text-slate-400 mb-1.5 font-medium">
-                    Judul Projek / Blog
+                  <label className="block text-slate-400 mb-1">
+                    Judul Projek
                   </label>
                   <input
                     type="text"
@@ -430,13 +441,12 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setProjForm({ ...projForm, title: e.target.value })
                     }
-                    placeholder="EduSmart - Dashboard Portal"
-                    className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                    className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 mb-1.5 font-medium">
+                    <label className="block text-slate-400 mb-1">
                       Kategori Sistem
                     </label>
                     <input
@@ -446,12 +456,11 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setProjForm({ ...projForm, category: e.target.value })
                       }
-                      placeholder="Sistem Academic"
-                      className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 mb-1.5 font-medium">
+                    <label className="block text-slate-400 mb-1">
                       Tech Stack
                     </label>
                     <input
@@ -461,12 +470,12 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setProjForm({ ...projForm, tech: e.target.value })
                       }
-                      className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1.5 font-medium">
+                  <label className="block text-slate-400 mb-1">
                     Deskripsi Singkat
                   </label>
                   <textarea
@@ -476,57 +485,83 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setProjForm({ ...projForm, desc: e.target.value })
                     }
-                    placeholder="Platform manajemen data..."
-                    className={`w-full border rounded-lg px-3 py-2.5 outline-none resize-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                    className={`w-full border rounded-lg px-3 py-2 outline-none resize-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                   ></textarea>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={savingProj}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-lg text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                >
-                  {savingProj ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Plus size={14} />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={savingProj}
+                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs tracking-wider flex items-center justify-center gap-2"
+                  >
+                    {savingProj ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Plus size={14} />
+                    )}
+                    {editingProject ? "PERBARUI PROJEK" : "PUBLIKASIKAN PROJEK"}
+                  </button>
+                  {editingProject && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingProject(null);
+                        setProjForm({
+                          title: "",
+                          category: "",
+                          desc: "",
+                          tech: "Laravel + React",
+                          speed: "98/100",
+                          status: "Production Ready",
+                          color: "from-blue-600 to-indigo-700",
+                        });
+                      }}
+                      className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg"
+                    >
+                      Batal
+                    </button>
                   )}
-                  TAMBAHKAN PROJEK BARU
-                </button>
+                </div>
               </form>
 
-              {/* List Projek Aktif */}
+              {/* LIST DISPLAY */}
               <div className="pt-4 border-t border-slate-500/10 space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  List Projek Aktif ({projects.length})
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  List Projek ({projects.length})
                 </span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                   {projects.map((p) => (
                     <div
                       key={p.id}
-                      className={`p-3 rounded-lg border flex items-center justify-between text-[12px] ${isDark ? "bg-[#232333] border-[#363853]" : "bg-[#f5f5f9] border-slate-100"}`}
+                      className={`p-3 rounded-lg border flex items-center justify-between text-[12px] ${isDarkMode ? "bg-[#181924] border-[#2d3042]" : "bg-[#f5f5f9]"}`}
                     >
                       <div>
-                        <span
-                          className={`font-bold block ${isDark ? "text-slate-200" : "text-[#566a7f]"}`}
-                        >
-                          {p.title}
-                        </span>
+                        <span className="font-bold block">{p.title}</span>
                         <span className="text-[10px] text-slate-400">
                           {p.category}
                         </span>
                       </div>
-                      <button
-                        onClick={() => handleDeleteProject(p.id)}
-                        disabled={deletingId === p.id}
-                        className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg"
-                      >
-                        {deletingId === p.id ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => startEditProject(p)}
+                          className="text-blue-500 p-1.5 hover:bg-blue-500/10 rounded-lg"
+                          title="Edit"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProject(p.id)}
+                          disabled={deletingId === p.id}
+                          className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg"
+                        >
+                          {deletingId === p.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -534,34 +569,26 @@ export default function AdminDashboard({
             </div>
           )}
 
-          {/* TAB 3: HALAMAN FORM TESTIMONIAL & FOTO WEB */}
+          {/* PANEL TESTIMONIAL */}
           {activeTab === "testimonials" && (
             <div
-              className={`rounded-xl shadow-sm p-6 space-y-5 border transition-colors ${isDark ? "bg-[#2b2c40] border-transparent" : "bg-white border-slate-100"}`}
+              className={`rounded-xl p-6 space-y-5 border ${isDarkMode ? "bg-[#212330] border-transparent" : "bg-white border-slate-100"}`}
             >
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-500/10">
-                <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
-                  <MessageSquare size={18} />
-                </div>
-                <div>
-                  <h3
-                    className={`text-sm font-bold ${isDark ? "text-white" : "text-[#566a7f]"}`}
-                  >
-                    Manajemen Komentar Testimoni
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    Urus respon validasi eksternal beserta gambar lampiran web
-                  </p>
-                </div>
+              <div className="pb-3 border-b border-slate-500/10">
+                <h3 className="text-sm font-bold">
+                  {editingTestimonial
+                    ? "⚡ Sunting Testimonial"
+                    : "➕ Manajemen Komentar Testimoni"}
+                </h3>
               </div>
 
               <form
-                onSubmit={handleCreateTestimonial}
+                onSubmit={handleSaveTestimonial}
                 className="space-y-4 text-xs font-semibold"
               >
                 <div>
-                  <label className="block text-slate-400 mb-1.5 font-medium">
-                    Isi Komentar Klien / Ulasan
+                  <label className="block text-slate-400 mb-1">
+                    Isi Komentar Ulasan
                   </label>
                   <textarea
                     rows="3"
@@ -570,15 +597,12 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setTestiForm({ ...testiForm, quote: e.target.value })
                     }
-                    placeholder="Sistem dashboard internal sangat membantu..."
-                    className={`w-full border rounded-lg px-3 py-2.5 outline-none resize-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                    className={`w-full border rounded-lg px-3 py-2 outline-none resize-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                   ></textarea>
                 </div>
-
-                {/* Penambahan Fitur Input Link Foto Web/Klien */}
                 <div>
-                  <label className="block text-slate-400 mb-1.5 font-medium flex items-center gap-1">
-                    <Image size={12} /> URL Foto Web / Avatar Klien
+                  <label className="block text-slate-400 mb-1 flex items-center gap-1">
+                    <ImageIcon size={12} /> URL Foto Web / Avatar
                   </label>
                   <input
                     type="url"
@@ -586,15 +610,13 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setTestiForm({ ...testiForm, avatar_url: e.target.value })
                     }
-                    placeholder="https://example.com/foto-web.png"
-                    className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                    className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 mb-1.5 font-medium">
-                      Nama Inisial / Klien
+                    <label className="block text-slate-400 mb-1">
+                      Nama Klien
                     </label>
                     <input
                       type="text"
@@ -603,13 +625,12 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setTestiForm({ ...testiForm, name: e.target.value })
                       }
-                      placeholder="Contoh: GT atau Nama Lengkap"
-                      className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 mb-1.5 font-medium">
-                      Nama Institusi / Perusahaan
+                    <label className="block text-slate-400 mb-1">
+                      Perusahaan / Institusi
                     </label>
                     <input
                       type="text"
@@ -618,68 +639,97 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setTestiForm({ ...testiForm, company: e.target.value })
                       }
-                      placeholder="Global Tech Corp"
-                      className={`w-full border rounded-lg px-3 py-2.5 outline-none transition-all ${isDark ? "bg-[#232333] border-[#434460] text-white focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                      className={`w-full border rounded-lg px-3 py-2 outline-none ${isDarkMode ? "bg-[#181924] border-[#3a3c4f] text-white" : "bg-white border-slate-300"}`}
                     />
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={savingTesti}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-lg text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                >
-                  {savingTesti ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Plus size={14} />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={savingTesti}
+                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs tracking-wider flex items-center justify-center gap-2"
+                  >
+                    {savingTesti ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Plus size={14} />
+                    )}
+                    {editingTestimonial
+                      ? "PERBARUI TESTIMONIAL"
+                      : "PUBLIKASIKAN TESTIMONI"}
+                  </button>
+                  {editingTestimonial && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingTestimonial(null);
+                        setTestiForm({
+                          quote: "",
+                          name: "",
+                          company: "",
+                          tags: "SaaS Enterprise",
+                          rating: "5.0",
+                          avatar_url: "",
+                        });
+                      }}
+                      className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg"
+                    >
+                      Batal
+                    </button>
                   )}
-                  PUBLIKASIKAN TESTIMONI
-                </button>
+                </div>
               </form>
 
-              {/* List Testimoni Aktif */}
+              {/* LIST DISPLAY TESTI */}
               <div className="pt-4 border-t border-slate-500/10 space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  List Testimoni Aktif ({testimonials.length})
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  List Testimoni ({testimonials.length})
                 </span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                   {testimonials.map((t) => (
                     <div
                       key={t.id}
-                      className={`p-3 rounded-lg border flex items-center justify-between text-[11px] ${isDark ? "bg-[#232333] border-[#363853]" : "bg-[#f5f5f9] border-slate-100"}`}
+                      className={`p-3 rounded-lg border flex items-center justify-between text-[11px] ${isDarkMode ? "bg-[#181924] border-[#2d3042]" : "bg-[#f5f5f9]"}`}
                     >
-                      <div className="flex items-center gap-3 truncate max-w-[85%]">
+                      <div className="flex items-center gap-2 truncate max-w-[80%]">
                         {t.avatar_url && (
                           <img
                             src={t.avatar_url}
-                            alt="Web"
-                            className="w-8 h-8 rounded object-cover border border-slate-300 shrink-0"
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                            }}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover shrink-0"
+                            onError={(e) => (e.target.style.display = "none")}
                           />
                         )}
                         <div className="truncate">
                           <span className="text-slate-400 italic block truncate">
                             "{t.quote}"
                           </span>
-                          <span className="text-[10px] font-semibold text-blue-500 mt-0.5 block">
+                          <span className="text-[10px] font-semibold text-blue-500 block">
                             {t.name} — {t.company}
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteTestimonial(t.id)}
-                        disabled={deletingId === t.id}
-                        className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg"
-                      >
-                        {deletingId === t.id ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => startEditTestimonial(t)}
+                          className="text-blue-500 p-1.5 hover:bg-blue-500/10 rounded-lg"
+                          title="Edit"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTestimonial(t.id)}
+                          disabled={deletingId === t.id}
+                          className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg"
+                        >
+                          {deletingId === t.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
