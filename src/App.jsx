@@ -40,6 +40,7 @@ export default function App() {
   const t = {
     id: {
       nav: {
+        home: "Home",
         adv: "Advertisers",
         pub: "Publishers",
         gal: "Gallery",
@@ -48,9 +49,9 @@ export default function App() {
       },
       hero: {
         badge: "Siswa SMK & Spesialis Backend",
-        title1: "Digital Ads dibangun",
+        title1: "Website Modern ",
         title2: "untuk",
-        desc: "Teknologi Proprietary. Hasil Terbukti. Tanpa Jalan Pintas. Hanya Performa.",
+        desc: "Teknologi Proprietary. Hasil Terbukti. Custom dibuat sesuai kebutuhan.",
         btn: "Mulai Sekarang ➔",
       },
       showcase: {
@@ -108,6 +109,7 @@ export default function App() {
     },
     en: {
       nav: {
+        home: "Home",
         adv: "Advertisers",
         pub: "Publishers",
         gal: "Gallery",
@@ -116,10 +118,10 @@ export default function App() {
       },
       hero: {
         badge: "Vocational High School Student & Backend Specialist",
-        title1: "Digital Ads built",
-        title2: "to",
-        desc: "Proprietary Technology. Proven Results. No Shortcuts. Just Performance.",
-        btn: "Get started ➔",
+        title1: "Modern Website ",
+        title2: "for",
+        desc: "Proprietary Technology. Proven Results. Custom built to your needs.",
+        btn: "Get Started Now ➔",
       },
       showcase: {
         badge: "FROM MY BLOGPOST & PRODUCTS",
@@ -127,15 +129,15 @@ export default function App() {
         testBtn: "TEST LIVE PREVIEW ➔",
       },
       testimoni: {
-        title1: "Testimonials that Speak to",
-        title2: "My Results",
+        title1: "Testimonials that Speak",
+        title2: "About My Results",
         desc: "Hear real feedback directly from enterprise clients and educational institutions who trust their systems with us.",
       },
       brief: {
         badge: "Let's Build Together",
         title1: "Unite Your Great Ideas,",
         title2: "Realize Your Dream System!",
-        desc: "Have a concept for an app, dashboard, or digital platform you want to execute? Don't let that idea sit idle. Let's combine your business vision with our modern technical expertise to build fast, resilient, and targeted digital products.",
+        desc: "Have a concept for an app, dashboard, or digital platform you want to execute? Don't let that idea sit idle. Let's combine your business vision with our modern technical expertise to build digital products that are fast, resilient, and highly targeted.",
         alert: "Fill out the form on the side to start aligning our goals.",
         formTitle: "PROJECT BRIEF",
         labelDomain: "Supporting Domain Name",
@@ -175,7 +177,6 @@ export default function App() {
       },
     },
   };
-
   const [activeFaqId, setActiveFaqId] = useState(null);
 
   const faqData = [
