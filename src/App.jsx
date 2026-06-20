@@ -720,7 +720,7 @@ export default function App() {
           </div>
         </div>
       </section>
-      {/* SEKSI TESTIMONI SLIDER */}
+      {/* SEKSI TESTIMONI — SLIDER COCOK UNTUK MOBILE & LAPTOP */}
       <section
         id="testimoni"
         ref={testimoniRef}
@@ -737,81 +737,59 @@ export default function App() {
             {t[lang].testimoni.desc}
           </p>
 
-          {/* Slider wrapper — overflow hidden agar card di luar tidak bocor */}
-          <div className="w-full overflow-hidden">
-            <div
-              className="flex gap-4 sm:gap-6 items-stretch transition-transform duration-500 ease-out py-4 sm:py-6 px-4 sm:px-6"
-              style={{
-                transform: `translateX(calc(50% - 45vw - (${currentIdx} * (90vw + 16px))))`,
-              }}
-            >
-              {testimonials.map((tItem, idx) => {
-                const isActive = idx === currentIdx;
-                return (
-                  <div
-                    key={tItem.id}
-                    className={`w-[90vw] sm:w-[440px] shrink-0 border rounded-2xl p-5 sm:p-6 text-left relative transition-all duration-500 flex flex-col justify-between min-h-[200px] sm:min-h-[220px] bg-[#1c1f26] ${
-                      isActive
-                        ? "border-blue-500 opacity-100 scale-100 z-10 shadow-2xl shadow-blue-500/10"
-                        : "border-slate-800/80 opacity-40 scale-95"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center gap-1 mb-3 text-orange-500">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={13} fill="currentColor" />
-                        ))}
-                        <span className="text-[11px] font-bold text-slate-300 ml-1">
-                          5.0
-                        </span>
-                      </div>
-                      <p className="text-xs font-semibold leading-relaxed mb-5 sm:mb-6 text-white">
-                        "{tItem.quote}"
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-end border-t border-slate-800/60 pt-4">
-                      <div className="flex items-center gap-3">
-                        {/* Perbaikan: Menampilkan Foto Avatar Client dari Dashboard */}
-                        {tItem.avatar_url ? (
-                          <img
-                            src={tItem.avatar_url}
-                            alt={tItem.name}
-                            className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-700 shadow-sm"
-                            onError={(e) => {
-                              // Jika link gambar rusak/error, otomatis switch balik ke tampilan inisial teks
-                              e.target.style.display = "none";
-                              e.target.nextSibling.style.display = "flex";
-                            }}
-                          />
-                        ) : null}
-
-                        <div
-                          className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden uppercase shrink-0"
-                          style={{
-                            display: tItem.avatar_url ? "none" : "flex",
-                          }}
-                        >
-                          {tItem.name.substring(0, 2)}
+          <div className="w-full px-4 sm:px-6">
+            <div className="w-full max-w-[320px] sm:max-w-[1416px] mx-auto overflow-hidden">
+              <div
+                className="flex gap-6 items-stretch transition-transform duration-500 ease-out py-4"
+                style={{
+                  transform:
+                    typeof window !== "undefined" && window.innerWidth < 640
+                      ? `translateX(calc(-${currentIdx} * (100% + 24px)))`
+                      : `translateX(-${currentIdx * 464}px)`,
+                }}
+              >
+                {testimonials.map((tItem, idx) => {
+                  return (
+                    <div
+                      key={tItem.id}
+                      className="w-full sm:w-[440px] shrink-0 border border-slate-800/80 rounded-2xl p-5 sm:p-6 text-left relative bg-[#1c1f26] flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-all duration-300 hover:border-blue-500 text-white"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1 mb-3 text-orange-500">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={13} fill="currentColor" />
+                          ))}
+                          <span className="text-[11px] font-bold text-slate-300 ml-1">
+                            5.0
+                          </span>
                         </div>
-
-                        <div>
-                          <h4 className="text-xs font-black text-white">
-                            {tItem.name}
-                          </h4>
-                          <p className="text-[10px] text-slate-300 font-medium">
-                            {tItem.company}
-                          </p>
+                        <p className="text-xs font-semibold leading-relaxed mb-5 sm:mb-6 text-white">
+                          "{tItem.quote}"
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-end border-t border-slate-800/60 pt-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden uppercase">
+                            {tItem.name.substring(0, 2)}
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-white">
+                              {tItem.name}
+                            </h4>
+                            <p className="text-[10px] text-blue-400 font-bold">
+                              {tItem.company}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Tombol navigasi slider */}
-          <div className="flex justify-center items-center gap-3 mt-4 sm:mt-6 px-6">
+          <div className="flex justify-center items-center gap-3 mt-5 sm:mt-6 px-6">
             <button
               onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))}
               disabled={currentIdx === 0}
@@ -819,7 +797,7 @@ export default function App() {
             >
               <ArrowLeft size={16} />
             </button>
-            {/* Dot indicator */}
+
             <div className="flex gap-1.5">
               {testimonials.map((_, idx) => (
                 <button
@@ -829,6 +807,7 @@ export default function App() {
                 />
               ))}
             </div>
+
             <button
               onClick={() =>
                 setCurrentIdx((prev) =>
@@ -843,7 +822,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
       {/* SEKSI BRIEF PROYEK */}
       <section
         id="brief"
