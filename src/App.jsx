@@ -656,12 +656,10 @@ export default function App() {
           {/* Efek Blur Transparan Sinematik di Kiri dan Kanan Slider (Khusus Desktop) */}
           <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#112E81] via-[#112E81]/40 to-transparent z-20 pointer-events-none hidden md:block dark:from-[#222831]"></div>
           <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#112E81] via-[#112E81]/40 to-transparent z-20 pointer-events-none hidden md:block dark:from-[#222831]"></div>
-
           {/* Track Jalannya Animasi */}
-          {/* DIUBAH: Menggunakan class 'animate-marquee-portfolio' agar sinkron dengan file CSS terbaru */}
           <div className="animate-marquee-portfolio gap-4 sm:gap-6 px-4">
-            {/* Kita gandakan data [...projects, ...projects, ...projects] supaya looping tidak putus walau data masih sedikit */}
-            {[...projects, ...projects, ...projects].map((project, index) => (
+            {/* Hanya memetakan data asli dari database tanpa duplikasi */}
+            {projects.map((project, index) => (
               <div
                 key={`${project.id}-${index}`}
                 className="border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex flex-col justify-between transition-all bg-[#13161c] hover:border-slate-700 shadow-2xl relative overflow-hidden group text-white w-[280px] sm:w-[380px] shrink-0"
