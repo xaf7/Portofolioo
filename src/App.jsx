@@ -959,14 +959,14 @@ export default function App() {
         </div>
       </section>
 
-      {/* SEKSI FAQ */}
+      {/* FAQ SECTION */}
       <section
         id="faq"
         ref={faqRef}
-        className={`w-full py-16 sm:py-20 px-4 sm:px-6 border-b transition-all duration-1000 transform ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#020408] border-slate-900" : "bg-[#112E81] border-blue-800"}`}
+        className={`w-full py-20 px-4 sm:px-6 border-b transition-all duration-1000 transform ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#020408] border-slate-900" : "bg-[#112E81] border-blue-800"}`}
       >
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-10 sm:mb-12">
+          <div className="text-center mb-12">
             <span
               className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? "text-blue-400" : "text-blue-200"}`}
             >
@@ -986,21 +986,21 @@ export default function App() {
                 >
                   <button
                     onClick={() => setActiveFaqId(isOpen ? null : faq.id)}
-                    className="w-full px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-left transition-colors outline-none"
+                    className="w-full px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between text-left transition-colors outline-none"
                   >
                     <span
-                      className={`text-xs sm:text-sm font-bold tracking-tight transition-colors pr-3 ${isOpen ? "text-blue-600" : isDarkMode ? "text-slate-200" : "text-slate-800"}`}
+                      className={`text-xs sm:text-sm font-bold tracking-tight transition-colors ${isOpen ? "text-blue-600" : isDarkMode ? "text-slate-200" : "text-slate-800"}`}
                     >
                       {faq.question}
                     </span>
                     <span
-                      className={`p-1.5 rounded-xl shrink-0 transition-all ${isOpen ? "bg-blue-600/10 text-blue-600 rotate-180" : isDarkMode ? "bg-slate-800 text-slate-400" : "bg-blue-50 text-blue-600"}`}
+                      className={`p-1.5 rounded-xl transition-all ${isOpen ? "bg-blue-600/10 text-blue-600 rotate-180" : isDarkMode ? "bg-slate-800 text-slate-400" : "bg-blue-50 text-blue-600"}`}
                     >
                       {isOpen ? <X size={14} /> : <Plus size={14} />}
                     </span>
                   </button>
                   <div
-                    className={`transition-all duration-300 ease-in-out ${isOpen ? (isDarkMode ? "max-h-52 border-t border-slate-800/60 bg-[#11141c]" : "max-h-52 border-t border-blue-100 bg-blue-50/40") : "max-h-0"}`}
+                    className={`transition-all duration-300 ease-in-out ${isOpen ? (isDarkMode ? "max-h-40 border-t border-slate-800/60 bg-[#11141c]" : "max-h-40 border-t border-blue-100 bg-blue-50/40") : "max-h-0"}`}
                   >
                     <p
                       className={`p-5 sm:p-6 text-[11px] sm:text-xs leading-relaxed ${isDarkMode ? "text-slate-200 font-medium" : "text-slate-600"}`}
@@ -1017,16 +1017,16 @@ export default function App() {
 
       {/* FOOTER */}
       <footer
-        className={`w-full py-14 sm:py-16 px-4 sm:px-6 lg:px-20 border-t transition-colors duration-300 ${isDarkMode ? "bg-[#112E81] border-slate-900" : "bg-white border-blue-100"}`}
+        className={`w-full py-16 px-4 sm:px-6 lg:px-20 border-t transition-colors duration-300 ${isDarkMode ? "bg-[#112E81] border-slate-900" : "bg-white border-blue-100"}`}
       >
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
-          <div className="col-span-2 md:col-span-1 space-y-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="space-y-4">
             <div
               className={`font-bold text-sm font-mono flex items-center gap-2 ${isDarkMode ? "text-white" : "text-slate-900"}`}
             >
               <span className="bg-blue-600 text-white px-2 py-0.5 rounded font-black text-xs">
                 X
-              </span>
+              </span>{" "}
               XAF7 Studio
             </div>
             <p
@@ -1035,7 +1035,6 @@ export default function App() {
               {t[lang].footer.desc}
             </p>
           </div>
-
           <div>
             <h4
               className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1071,7 +1070,6 @@ export default function App() {
               </li>
             </ul>
           </div>
-
           <div>
             <h4
               className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1085,7 +1083,6 @@ export default function App() {
               <p>{t[lang].footer.loc}</p>
             </div>
           </div>
-
           <div>
             <h4
               className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -1098,15 +1095,14 @@ export default function App() {
                 placeholder={t[lang].footer.holderEmail}
                 className={`w-full text-[11px] p-2 rounded-lg border outline-none ${isDarkMode ? "bg-[#0b0e14] border-slate-800 text-white" : "bg-white border-blue-100 text-slate-900 focus:border-blue-500"}`}
               />
-              <button className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-all shrink-0">
+              <button className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-all">
                 ➔
               </button>
             </div>
           </div>
         </div>
-
         <div
-          className={`max-w-7xl mx-auto mt-10 sm:mt-12 pt-6 sm:pt-8 border-t flex flex-col md:flex-row justify-between items-center text-[10px] font-bold gap-3 sm:gap-4 ${isDarkMode ? "border-slate-900 text-slate-500" : "border-slate-100 text-slate-600"}`}
+          className={`max-w-7xl mx-auto mt-12 pt-8 border-t flex flex-col md:flex-row justify-between items-center text-[10px] font-bold gap-4 ${isDarkMode ? "border-slate-900 text-slate-500" : "border-slate-100 text-slate-600"}`}
         >
           <p>
             © {new Date().getFullYear()} {t[lang].footer.rights}
