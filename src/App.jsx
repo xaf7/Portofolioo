@@ -668,21 +668,20 @@ export default function App() {
                   <div
                     className={`w-full rounded-xl bg-gradient-to-br ${project.color} flex flex-col justify-between text-white mb-4 sm:mb-6 shadow-inner relative overflow-hidden h-48 sm:h-60`}
                   >
-                    {/* Background Gambar Hasil Upload */}
-                    {project.image_url && (
-                      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-                        <img
-                          src={
-                            project.image_url.startsWith("http")
-                              ? project.image_url
-                              : `https://pvybtfivfhnskbshwbbg.supabase.co/storage/v1/object/public/image/${project.image_url}`
-                          }
-                          alt={project.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/50"></div>
-                      </div>
-                    )}
+                    <img
+                      src={
+                        project.image_url.startsWith("http")
+                          ? project.image_url
+                          : `https://pvybtfivfhnskbshwbbg.supabase.co/storage/v1/object/public/image/${project.image_url.replace("projects/", "")}`
+                      }
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        // Jika masih ada link yang error/pecah, ganti otomatis ke gambar placeholder agar web tidak terlihat rusak
+                        e.target.src =
+                          "https://placehold.co/600x400?text=Image+Not+Found";
+                      }}
+                    />
                     {/* Header Kartu */}
                     <div className="flex items-start justify-between gap-3 z-10 w-full p-3 sm:p-4">
                       <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight max-w-[65%] drop-shadow-md truncate-2-lines">
