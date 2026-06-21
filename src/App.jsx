@@ -1131,7 +1131,7 @@ export default function App() {
               href="https://wa.me/6283129195737"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl w-full transition-all shadow-md transform hover:scale-[1.02]"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl w-fit transition-all shadow-md transform hover:scale-[1.02]"
             >
               💬 Chat via WhatsApp
             </a>
