@@ -806,11 +806,11 @@ export default function App() {
                         className={`flex justify-between items-end border-t pt-4 ${isDarkMode ? "border-slate-800/60" : "border-slate-200"}`}
                       >
                         <div className="flex items-center gap-3">
-                          {/* AVATAR DENGAN CHECK URL / PLACEHOLDER INISIAL */}
                           <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden uppercase flex-shrink-0">
                             {tItem.avatar_url ? (
                               <img
                                 src={
+                                  tItem.avatar_url &&
                                   tItem.avatar_url.startsWith("http")
                                     ? tItem.avatar_url
                                     : `https://pvybtfivfhnskbshwbbg.supabase.co/storage/v1/object/public/image/${tItem.avatar_url}`
@@ -818,8 +818,10 @@ export default function App() {
                                 alt={tItem.name}
                                 className="w-full h-full object-cover"
                               />
-                            ) : (
+                            ) : tItem.name ? (
                               tItem.name.substring(0, 2)
+                            ) : (
+                              "XF"
                             )}
                           </div>
                           <div>
