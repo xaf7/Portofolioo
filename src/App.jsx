@@ -635,7 +635,7 @@ export default function App() {
       <section
         id="showcase"
         ref={showcaseRef}
-        className={`w-full py-16 sm:py-20 border-t border-b overflow-hidden transition-all duration-1000 transform ${showcaseVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#222831] border-slate-900" : "bg-slate-50 border-slate-200"}`}
+        className={`w-full py-16 sm:py-20 border-t border-b overflow-hidden transition-all duration-1000 transform ${showcaseVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#04163E] border-slate-900" : "bg-slate-50 border-slate-200"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 sm:mb-10">
           <span
