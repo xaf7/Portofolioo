@@ -589,7 +589,7 @@ export default function App() {
       <section
         ref={heroRef}
         id="hero"
-        className={`w-full pt-28 sm:pt-36 md:pt-48 pb-16 sm:pb-24 px-4 sm:px-6 text-left transition-all duration-1000 transform ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#15131E]" : "bg-white"}`}
+        className={`w-full pt-28 sm:pt-36 md:pt-48 pb-16 sm:pb-24 px-4 sm:px-6 text-left transition-all duration-1000 transform ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#0A0E18]" : "bg-white"}`}
       >
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div>
@@ -752,7 +752,7 @@ export default function App() {
       <section
         id="testimoni"
         ref={testimoniRef}
-        className={`w-full py-16 sm:py-20 overflow-hidden text-center transition-all duration-1000 transform ${testimoniVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#15131E]" : "bg-white"}`}
+        className={`w-full py-16 sm:py-20 overflow-hidden text-center transition-all duration-1000 transform ${testimoniVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#0A0E18]" : "bg-white"}`}
       >
         <div
           className={`max-w-6xl mx-auto py-10 sm:py-12 rounded-3xl border shadow-2xl mx-3 sm:mx-4 lg:mx-auto overflow-hidden transition-colors ${isDarkMode ? "bg-[#13161c] border-slate-800/80 text-white" : "bg-blue-50/60 border-blue-100 text-slate-900"}`}
@@ -986,7 +986,7 @@ export default function App() {
       <section
         id="faq"
         ref={faqRef}
-        className={`w-full py-20 px-4 sm:px-6 border-b transition-all duration-1000 transform ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#020408] border-slate-900" : "bg-white border-slate-200"}`}
+        className={`w-full py-20 px-4 sm:px-6 border-b transition-all duration-1000 transform ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isDarkMode ? "bg-[#0A0E18] border-slate-900" : "bg-white border-slate-200"}`}
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
