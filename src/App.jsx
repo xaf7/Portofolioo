@@ -1115,26 +1115,32 @@ export default function App() {
           </div>
 
           {/* Kolom 4: Hubungi via WA */}
-          <div>
+          <div className="flex flex-col h-full w-full">
             <h4
-              className={`text-xs font-black uppercase tracking-wider mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              className={`text-xs font-black uppercase tracking-wider mb-4 ${
+                isDarkMode ? "text-white" : "text-slate-900"
+              }`}
             >
               Konsultasi Cepat
             </h4>
             <p
-              className={`text-[11px] mb-3 leading-relaxed ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+              className={`text-[11px] mb-4 leading-relaxed ${
+                isDarkMode ? "text-slate-400" : "text-slate-500"
+              }`}
             >
               Punya konsep aplikasi atau butuh sistem kustom? Diskusikan
               langsung sekarang.
             </p>
-            <a
-              href="https://wa.me/6283129195737"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl w-fit transition-all shadow-md transform hover:scale-[1.02]"
-            >
-              💬 Chat via WhatsApp
-            </a>
+            <div className="mt-auto w-full">
+              <a
+                href="https://wa.me/6283129195737"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 px-4 rounded-xl w-full transition-all shadow-md transform hover:scale-[1.02]"
+              >
+                💬 Chat via WhatsApp
+              </a>
+            </div>
           </div>
         </div>
 
