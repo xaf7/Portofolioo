@@ -272,10 +272,14 @@ export default function AdminDashboard({
     setDeletingId(null);
   };
 
+  // URL Diperbaiki dinamis menggunakan database client bawaan agar tidak salah ketik link internal
   const renderStorageImage = (path) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
-    return `https://pvybtfivfhnskbshwbbg.supabase.co/storage/v1/object/public/image/${path}`;
+
+    // Menggunakan fungsi bawaan dari SDK Supabase untuk mendapatkan public URL yang valid secara otomatis
+    const { data } = supabase.storage.from("image").getPublicUrl(path);
+    return data?.publicUrl || "";
   };
 
   return (
@@ -617,7 +621,6 @@ export default function AdminDashboard({
                   <div
                     className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
                   >
-                    {/* Tampilan Konten Lapisan Bawah */}
                     <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
                       <ImageIcon size={24} className="text-slate-500 mb-1" />
                       <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
@@ -626,8 +629,6 @@ export default function AdminDashboard({
                           : "Klik area ini untuk mencari file foto"}
                       </span>
                     </div>
-
-                    {/* Input File Lapisan Atas (Transparan Penuh & Mengisi Seluruh Kotak) */}
                     <input
                       type="file"
                       accept="image/*"
@@ -771,7 +772,6 @@ export default function AdminDashboard({
                   <div
                     className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
                   >
-                    {/* Tampilan Konten Lapisan Bawah */}
                     <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
                       <ImageIcon size={24} className="text-slate-500 mb-1" />
                       <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
@@ -780,8 +780,6 @@ export default function AdminDashboard({
                           : "Klik area ini untuk mencari file foto"}
                       </span>
                     </div>
-
-                    {/* Input File Lapisan Atas (Transparan Penuh & Mengisi Seluruh Kotak) */}
                     <input
                       type="file"
                       accept="image/*"
