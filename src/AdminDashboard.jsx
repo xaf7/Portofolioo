@@ -57,15 +57,14 @@ export default function AdminDashboard({
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Perbaikan Utama: Mengembalikan Full Public URL Langsung dari Supabase Storage
+  // FIXED: Fungsi upload hanya menyimpan file name unik ke DB agar tidak merusak struktur path string
   const uploadImage = async (file, folderName = "projects") => {
     if (!file) return null;
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-    // Memasukkan file ke dalam folder yang sesuai (projects/ atau testimonials/)
     const filePath = `${folderName}/${fileName}`;
 
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("image")
       .upload(filePath, file, {
         cacheControl: "3600",
@@ -73,17 +72,13 @@ export default function AdminDashboard({
       });
 
     if (uploadError) {
-      console.error("Detail Error Supabase Storage:", uploadError);
+      console.error("Detail Error Storage:", uploadError);
       alert("Gagal mengunggah gambar: " + uploadError.message);
       return null;
     }
 
-    // Ambil link URL Publik penuh dari berkas yang barusan diupload
-    const { data: publicUrlData } = supabase.storage
-      .from("image")
-      .getPublicUrl(filePath);
-
-    return publicUrlData?.publicUrl || null;
+    // Kembalikan nama file beserta sub-foldernya secara bersih
+    return filePath;
   };
 
   // Handler Submit Projek
@@ -94,8 +89,8 @@ export default function AdminDashboard({
     let finalImagePath = editingProject ? editingProject.image_url : "";
 
     if (projectFile) {
-      const uploadedUrl = await uploadImage(projectFile, "projects");
-      if (uploadedUrl) finalImagePath = uploadedUrl;
+      const uploadedPath = await uploadImage(projectFile, "projects");
+      if (uploadedPath) finalImagePath = uploadedPath;
     }
 
     const formattedDate = new Date().toLocaleDateString("en-GB", {
@@ -180,8 +175,8 @@ export default function AdminDashboard({
       : "";
 
     if (testimonialFile) {
-      const uploadedUrl = await uploadImage(testimonialFile, "testimonials");
-      if (uploadedUrl) finalAvatarPath = uploadedUrl;
+      const uploadedPath = await uploadImage(testimonialFile, "testimonials");
+      if (uploadedPath) finalAvatarPath = uploadedPath;
     }
 
     const payload = {
@@ -278,40 +273,26 @@ export default function AdminDashboard({
     setDeletingId(null);
   };
 
-  // Fungsi fallback pintar untuk memastikan link gambar selalu bersih dan aman dibaca komponen <img>
+  // FIXED: Mengurai path secara cerdas dan anti-double url ganda
   const renderStorageImage = (urlPath) => {
     if (!urlPath)
       return "https://placehold.co/600x400/13161c/ffffff?text=No+Image";
 
-    let cleanPath = urlPath;
+    // Jika data adalah url eksternal murni dari placeholder awal
+    if (urlPath.startsWith("http")) return urlPath;
 
-    // 1. Jika ini full URL, mari bersihkan jika ada bug double folder (misal: projects/projects/)
-    if (cleanPath.startsWith("http")) {
-      if (cleanPath.includes("/public/image/projects/projects/")) {
-        cleanPath = cleanPath.replace(
-          "/public/image/projects/projects/",
-          "/public/image/projects/",
-        );
-      }
-      if (cleanPath.includes("/public/image/testimonials/testimonials/")) {
-        cleanPath = cleanPath.replace(
-          "/public/image/testimonials/testimonials/",
-          "/public/image/testimonials/",
-        );
-      }
-      return cleanPath;
-    }
+    let finalPath = urlPath;
 
-    // 2. Jika database menyimpan path lama berupa string relatif (misal: "projects/namafile.png")
-    if (cleanPath.startsWith("projects/projects/"))
-      cleanPath = cleanPath.replace("projects/projects/", "projects/");
-    if (cleanPath.startsWith("testimonials/testimonials/"))
-      cleanPath = cleanPath.replace(
+    // Perbaikan jika string sisa bug lawas menumpuk folder ganda
+    if (finalPath.startsWith("projects/projects/"))
+      finalPath = finalPath.replace("projects/projects/", "projects/");
+    if (finalPath.startsWith("testimonials/testimonials/"))
+      finalPath = finalPath.replace(
         "testimonials/testimonials/",
         "testimonials/",
       );
 
-    const { data } = supabase.storage.from("image").getPublicUrl(cleanPath);
+    const { data } = supabase.storage.from("image").getPublicUrl(finalPath);
     return data?.publicUrl || "";
   };
 
