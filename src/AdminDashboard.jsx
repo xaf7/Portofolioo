@@ -57,7 +57,7 @@ export default function AdminDashboard({
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Helper upload berkas ke Supabase Bucket 'image'
+  // Helper upload berkas — Mengembalikan path relatif (misal: 'uploads/file.png')
   const uploadImage = async (file) => {
     if (!file) return null;
     const fileExt = file.name.split(".").pop();
@@ -615,14 +615,24 @@ export default function AdminDashboard({
                     {editingProject && "(Kosongkan jika tidak diganti)"}
                   </label>
                   <div
-                    className={`w-full p-4 border border-dashed rounded-xl flex flex-col items-center justify-center gap-2 ${isDarkMode ? "bg-[#181b22] border-slate-800" : "bg-slate-50 border-slate-300"}`}
+                    className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
                   >
-                    <ImageIcon size={24} className="text-slate-500" />
+                    {/* Tampilan Konten Lapisan Bawah */}
+                    <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
+                      <ImageIcon size={24} className="text-slate-500 mb-1" />
+                      <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
+                        {projectFile
+                          ? `Terpilih: ${projectFile.name}`
+                          : "Klik area ini untuk mencari file foto"}
+                      </span>
+                    </div>
+
+                    {/* Input File Lapisan Atas (Transparan Penuh & Mengisi Seluruh Kotak) */}
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setProjectFile(e.target.files[0])}
-                      className="text-xs max-w-full"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                   </div>
                 </div>
@@ -759,14 +769,24 @@ export default function AdminDashboard({
                     {editingTestimonial && "(Kosongkan jika tidak diganti)"}
                   </label>
                   <div
-                    className={`w-full p-4 border border-dashed rounded-xl flex flex-col items-center justify-center gap-2 ${isDarkMode ? "bg-[#181b22] border-slate-800" : "bg-slate-50 border-slate-300"}`}
+                    className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
                   >
-                    <ImageIcon size={24} className="text-slate-500" />
+                    {/* Tampilan Konten Lapisan Bawah */}
+                    <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
+                      <ImageIcon size={24} className="text-slate-500 mb-1" />
+                      <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
+                        {testimonialFile
+                          ? `Terpilih: ${testimonialFile.name}`
+                          : "Klik area ini untuk mencari file foto"}
+                      </span>
+                    </div>
+
+                    {/* Input File Lapisan Atas (Transparan Penuh & Mengisi Seluruh Kotak) */}
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setTestimonialFile(e.target.files[0])}
-                      className="text-xs max-w-full"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                   </div>
                 </div>
