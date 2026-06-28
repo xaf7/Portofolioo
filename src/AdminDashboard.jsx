@@ -33,638 +33,259 @@ export default function AdminDashboard({
 
   const [editingProject, setEditingProject] = useState(null);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
+  // Form State yang disesuaikan untuk struktur Kategori Portofolio baru kamu
   const [projForm, setProjForm] = useState({
     title: "",
-    category: "",
+    category: "Web Development", // Nilai default kategori baru
     desc: "",
-    tech: "Laravel + React",
-    speed: "98/100",
-    status: "Production Ready",
-    color: "from-blue-600 to-indigo-700",
+    long_desc: "", // Deskripsi lengkap saat kartu di-klik
+    tech: "React + Tailwind",
+    image_url: "", // Link URL Gambar Projek
     web_url: "",
   });
 
   const [testiForm, setTestiForm] = useState({
     name: "",
-    company: "",
-    quote: "",
+    role: "",
+    comment: "",
   });
 
-  const [projectFile, setProjectFile] = useState(null);
-  const [testimonialFile, setTestimonialFile] = useState(null);
-
-  const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-
-  // FIXED: Fungsi upload hanya menyimpan file name unik ke DB agar tidak merusak struktur path string
-  const uploadImage = async (file, folderName = "projects") => {
-    if (!file) return null;
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-    const filePath = `${folderName}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("image")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error("Detail Error Storage:", uploadError);
-      alert("Gagal mengunggah gambar: " + uploadError.message);
-      return null;
-    }
-
-    // Kembalikan nama file beserta sub-foldernya secara bersih
-    return filePath;
-  };
-
-  // Handler Submit Projek
-  const handleProjectSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    let finalImagePath = editingProject ? editingProject.image_url : "";
-
-    if (projectFile) {
-      const uploadedPath = await uploadImage(projectFile, "projects");
-      if (uploadedPath) finalImagePath = uploadedPath;
-    }
-
-    const formattedDate = new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-
-    const payload = {
-      title: projForm.title,
-      category: projForm.category,
-      description: projForm.desc,
-      tech: projForm.tech,
-      speed: projForm.speed,
-      status: projForm.status,
-      color: projForm.color,
-      web_url: projForm.web_url || null,
-      image_url: finalImagePath,
-      date: editingProject ? editingProject.date : formattedDate,
-    };
-
-    if (editingProject) {
-      const { data, error } = await supabase
-        .from("projects")
-        .update(payload)
-        .eq("id", editingProject.id)
-        .select();
-
-      if (!error && data) {
-        setProjects(
-          projects.map((p) => (p.id === editingProject.id ? data[0] : p)),
-        );
-        setEditingProject(null);
-        resetProjectForm();
-        setActiveTab("dashboard");
-      } else if (error) {
-        alert("Gagal merubah data: " + error.message);
-      }
-    } else {
-      if (!projectFile) {
-        alert("Silakan pilih file foto terlebih dahulu untuk projek baru!");
-        setSubmitting(false);
-        return;
-      }
-      const { data, error } = await supabase
-        .from("projects")
-        .insert([payload])
-        .select();
-
-      if (!error && data) {
-        setProjects([data[0], ...projects]);
-        resetProjectForm();
-        setActiveTab("dashboard");
-      } else if (error) {
-        alert("Gagal menambah data: " + error.message);
-      }
-    }
-    setSubmitting(false);
-  };
-
-  const resetProjectForm = () => {
+  const resetProjForm = () => {
     setProjForm({
       title: "",
-      category: "",
+      category: "Web Development",
       desc: "",
-      tech: "Laravel + React",
-      speed: "98/100",
-      status: "Production Ready",
-      color: "from-blue-600 to-indigo-700",
+      long_desc: "",
+      tech: "React + Tailwind",
+      image_url: "",
       web_url: "",
     });
-    setProjectFile(null);
   };
 
-  // Handler Submit Testimoni
-  const handleTestimonialSubmit = async (e) => {
+  const handleProjSubmit = (e) => {
     e.preventDefault();
     setSubmitting(true);
 
-    let finalAvatarPath = editingTestimonial
-      ? editingTestimonial.avatar_url
-      : "";
-
-    if (testimonialFile) {
-      const uploadedPath = await uploadImage(testimonialFile, "testimonials");
-      if (uploadedPath) finalAvatarPath = uploadedPath;
-    }
-
-    const payload = {
-      name: testiForm.name,
-      company: testiForm.company,
-      quote: testiForm.quote,
-      avatar_url: finalAvatarPath,
-    };
-
-    if (editingTestimonial) {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .update(payload)
-        .eq("id", editingTestimonial.id)
-        .select();
-
-      if (!error && data) {
-        setTestimonials(
-          testimonials.map((t) =>
-            t.id === editingTestimonial.id ? data[0] : t,
-          ),
-        );
-        setEditingTestimonial(null);
-        resetTestiForm();
-        setActiveTab("dashboard");
-      } else if (error) {
-        alert("Gagal merubah data: " + error.message);
-      }
-    } else {
-      if (!testimonialFile) {
-        alert("Silakan pilih file foto terlebih dahulu untuk testimoni baru!");
-        setSubmitting(false);
-        return;
-      }
-      const { data, error } = await supabase
-        .from("testimonials")
-        .insert([payload])
-        .select();
-
-      if (!error && data) {
-        setTestimonials([data[0], ...testimonials]);
-        resetTestiForm();
-        setActiveTab("dashboard");
-      } else if (error) {
-        alert("Gagal menambah data: " + error.message);
-      }
-    }
-    setSubmitting(false);
-  };
-
-  const resetTestiForm = () => {
-    setTestiForm({ name: "", company: "", quote: "" });
-    setTestimonialFile(null);
-  };
-
-  const startEditProject = (p) => {
-    setEditingProject(p);
-    setProjForm({
-      title: p.title,
-      category: p.category,
-      desc: p.description,
-      tech: p.tech,
-      speed: p.speed,
-      status: p.status,
-      color: p.color,
-      web_url: p.web_url || "",
-    });
-    setActiveTab("projects");
-  };
-
-  const startEditTestimonial = (t) => {
-    setEditingTestimonial(t);
-    setTestiForm({
-      name: t.name,
-      company: t.company,
-      quote: t.quote,
-    });
-    setActiveTab("testimonials");
-  };
-
-  const handleDeleteProject = async (id) => {
-    if (!confirm("Hapus projek ini?")) return;
-    setDeletingId(id);
-    const { error } = await supabase.from("projects").delete().eq("id", id);
-    if (!error) setProjects(projects.filter((p) => p.id !== id));
-    setDeletingId(null);
-  };
-
-  const handleDeleteTestimonial = async (id) => {
-    if (!confirm("Hapus testimoni ini?")) return;
-    setDeletingId(id);
-    const { error } = await supabase.from("testimonials").delete().eq("id", id);
-    if (!error) setTestimonials(testimonials.filter((t) => t.id !== id));
-    setDeletingId(null);
-  };
-
-  // FIXED: Mengurai path secara cerdas dan anti-double url ganda
-  const renderStorageImage = (urlPath) => {
-    if (!urlPath)
-      return "https://placehold.co/600x400/13161c/ffffff?text=No+Image";
-
-    // Jika data adalah url eksternal murni dari placeholder awal
-    if (urlPath.startsWith("http")) return urlPath;
-
-    let finalPath = urlPath;
-
-    // Perbaikan jika string sisa bug lawas menumpuk folder ganda
-    if (finalPath.startsWith("projects/projects/"))
-      finalPath = finalPath.replace("projects/projects/", "projects/");
-    if (finalPath.startsWith("testimonials/testimonials/"))
-      finalPath = finalPath.replace(
-        "testimonials/testimonials/",
-        "testimonials/",
+    // Simulasi penanganan state lokal (Menunggu skema tabel Supabase menyusul)
+    if (editingProject) {
+      setProjects(
+        projects.map((p) =>
+          p.id === editingProject.id ? { ...p, ...projForm } : p,
+        ),
       );
+      setEditingProject(null);
+    } else {
+      const newProj = {
+        id: Date.now(),
+        ...projForm,
+      };
+      setProjects([...projects, newProj]);
+    }
 
-    const { data } = supabase.storage.from("image").getPublicUrl(finalPath);
-    return data?.publicUrl || "";
+    setSubmitting(false);
+    resetProjForm();
+    setActiveTab("dashboard");
+  };
+
+  const handleProjEditClick = (project) => {
+    setEditingProject(project);
+    setProjForm({
+      title: project.title || "",
+      category: project.category || "Web Development",
+      desc: project.desc || "",
+      long_desc: project.long_desc || "",
+      tech: project.tech || "",
+      image_url: project.image_url || "",
+      web_url: project.web_url || "",
+    });
+    setActiveTab("add-project");
+  };
+
+  const handleProjDelete = (id) => {
+    if (
+      window.confirm(
+        "Apakah kamu yakin ingin menghapus projek ini dari portfolio?",
+      )
+    ) {
+      setProjects(projects.filter((p) => p.id !== id));
+    }
   };
 
   return (
     <div
-      className={`min-h-screen flex flex-col md:flex-row ${isDarkMode ? "bg-[#0a0c10] text-white" : "bg-slate-100 text-slate-900"}`}
+      className={`min-h-screen flex ${isDarkMode ? "bg-[#0a0c10] text-slate-200" : "bg-slate-50 text-slate-800"}`}
     >
-      {/* Sidebar Desktop */}
+      {/* SIDEBAR */}
       <aside
-        className={`w-64 fixed inset-y-0 left-0 z-20 hidden md:flex flex-col border-r ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
+        className={`w-64 fixed inset-y-0 left-0 z-40 border-r transform md:transform-none transition-transform duration-200 flex flex-col justify-between ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} ${isDarkMode ? "bg-[#13161c] border-slate-950" : "bg-white border-slate-200"}`}
       >
-        <div className="p-6 border-b border-inherit">
-          <h2 className="text-lg font-black tracking-wider uppercase text-blue-600">
-            XAF Admin
+        <div className="p-6">
+          <h2 className="text-sm font-black tracking-widest uppercase mb-8 text-blue-500">
+            CORE DASHBOARD
           </h2>
+          <nav className="flex flex-col gap-2 text-xs font-bold">
+            <button
+              onClick={() => {
+                setActiveTab("dashboard");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`p-3 rounded-xl flex items-center gap-2.5 ${activeTab === "dashboard" ? "bg-blue-600 text-white" : "hover:bg-slate-800/10"}`}
+            >
+              <LayoutDashboard size={14} /> Ringkasan Portfolio
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("add-project");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`p-3 rounded-xl flex items-center gap-2.5 ${activeTab === "add-project" ? "bg-blue-600 text-white" : "hover:bg-slate-800/10"}`}
+            >
+              <FolderPlus size={14} />{" "}
+              {editingProject ? "Edit Projek" : "Tambah Projek"}
+            </button>
+          </nav>
         </div>
-        <nav className="flex-1 p-4 space-y-1.5">
-          <button
-            onClick={() => setActiveTab("dashboard")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === "dashboard" ? "bg-blue-600 text-white shadow-md" : isDarkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-600"}`}
-          >
-            <LayoutDashboard size={16} /> Panel Utama
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("projects");
-              setEditingProject(null);
-              resetProjectForm();
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === "projects" ? "bg-blue-600 text-white shadow-md" : isDarkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-600"}`}
-          >
-            <FolderPlus size={16} /> Kelola Projek
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("testimonials");
-              setEditingTestimonial(null);
-              resetTestiForm();
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === "testimonials" ? "bg-blue-600 text-white shadow-md" : isDarkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-600"}`}
-          >
-            <MessageSquare size={16} /> Kelola Testimoni
-          </button>
-        </nav>
-        <div className="p-4 border-t border-inherit space-y-2">
+
+        <div className="p-6 border-t border-slate-800/20 flex flex-col gap-4">
           <button
             onClick={toggleDarkMode}
-            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold ${isDarkMode ? "bg-slate-800 text-yellow-400" : "bg-slate-200 text-slate-700"}`}
+            className="text-xs font-bold flex items-center gap-2 opacity-80 hover:opacity-100"
           >
-            {isDarkMode ? (
-              <div className="flex items-center gap-2">
-                <Sun size={14} /> Mode Terang
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Moon size={14} /> Mode Gelap
-              </div>
-            )}
+            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />} Ganti Tema
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs text-red-500 hover:bg-red-500/10 transition-all"
+            className="text-xs font-bold flex items-center gap-2 text-red-500 hover:text-red-400"
           >
-            <LogOut size={16} /> Keluar Akun
+            <LogOut size={14} /> Keluar Akses
           </button>
         </div>
       </aside>
 
-      {/* Header Mobile */}
-      <header
-        className={`p-4 flex items-center justify-between border-b md:hidden sticky top-0 z-30 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-      >
-        <h2 className="text-sm font-black tracking-wider uppercase text-blue-600">
-          XAF Admin
-        </h2>
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-xl border border-slate-700/30"
-        >
-          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </header>
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 md:pl-64 flex flex-col min-h-screen">
+        <header className="p-4 flex items-center justify-between border-b md:hidden">
+          <span className="font-black text-xs tracking-widest">DASHBOARD</span>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2"
+          >
+            {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </header>
 
-      {/* Dropdown Menu Mobile */}
-      {isMobileMenuOpen && (
-        <div
-          className={`md:hidden border-b p-4 space-y-2 fixed top-[61px] left-0 right-0 z-20 shadow-xl ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-        >
-          <button
-            onClick={() => {
-              setActiveTab("dashboard");
-              setIsMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs ${activeTab === "dashboard" ? "bg-blue-600 text-white" : ""}`}
-          >
-            <LayoutDashboard size={14} /> Panel Utama
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("projects");
-              setEditingProject(null);
-              resetProjectForm();
-              setIsMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs ${activeTab === "projects" ? "bg-blue-600 text-white" : ""}`}
-          >
-            <FolderPlus size={14} /> Kelola Projek
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("testimonials");
-              setEditingTestimonial(null);
-              resetTestiForm();
-              setIsMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs ${activeTab === "testimonials" ? "bg-blue-600 text-white" : ""}`}
-          >
-            <MessageSquare size={14} /> Kelola Testimoni
-          </button>
-          <div className="pt-2 border-t border-slate-700/30 flex gap-2">
-            <button
-              onClick={toggleDarkMode}
-              className="flex-1 py-2 bg-slate-800 text-center rounded-xl text-xs text-yellow-400 justify-center flex items-center gap-1"
-            >
-              {isDarkMode ? <Sun size={14} /> : <Moon size={14} />} Tema
-            </button>
-            <button
-              onClick={onLogout}
-              className="flex-1 py-2 bg-red-500/10 text-center rounded-xl text-xs font-bold text-red-500"
-            >
-              Keluar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Konten Utama */}
-      <div className="flex-1 md:pl-64 flex flex-col min-w-0">
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="p-6 sm:p-10 flex-1 max-w-5xl w-full mx-auto">
           {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div
-                  className={`p-6 rounded-2xl border flex items-center gap-4 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-                >
-                  <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-                    <Briefcase size={22} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 block">
-                      Total Projek
-                    </span>
-                    <span className="text-2xl font-black">
-                      {projects.length}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  className={`p-6 rounded-2xl border flex items-center gap-4 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-                >
-                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                    <UserCheck size={22} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 block">
-                      Total Testimoni
-                    </span>
-                    <span className="text-2xl font-black">
-                      {testimonials.length}
-                    </span>
-                  </div>
-                </div>
+            <div className="flex flex-col gap-6">
+              <div>
+                <h1 className="text-2xl font-black tracking-tight">
+                  Ringkasan Portfolio Agos
+                </h1>
+                <p className="text-xs text-slate-500 mt-1">
+                  Kelola dan tata semua dokumentasi kegiatan kamu di sini
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div
-                  className={`p-6 rounded-2xl border ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-                >
-                  <h3 className="text-sm font-black uppercase tracking-wider mb-4 text-blue-500">
-                    Daftar Projek
-                  </h3>
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    {projects.map((p) => (
-                      <div
-                        key={p.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-dashed border-slate-700/50"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
+              {/* DAFTAR MANAGEMEN KARTU PORTFOLIO */}
+              <div className="grid grid-cols-1 gap-4">
+                {projects.map((p) => (
+                  <div
+                    key={p.id}
+                    className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0">
+                        {p.image_url ? (
                           <img
-                            src={renderStorageImage(p.image_url)}
+                            src={p.image_url}
                             alt=""
-                            className="w-10 h-10 object-cover rounded-lg bg-slate-800 flex-shrink-0"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src =
-                                "https://placehold.co/100x100/13161c/ffffff?text=Error";
-                            }}
+                            className="w-full h-full object-cover"
                           />
-                          <div className="min-w-0">
-                            <span className="text-xs font-bold block truncate">
-                              {p.title}
-                            </span>
-                            <span className="text-[10px] text-slate-400 truncate block">
-                              {p.category}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => startEditProject(p)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded-lg"
-                          >
-                            <Edit3 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProject(p.id)}
-                            disabled={deletingId === p.id}
-                            className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"
-                          >
-                            {deletingId === p.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={14} />
-                            )}
-                          </button>
-                        </div>
+                        ) : (
+                          <ImageIcon size={16} className="m-4 text-slate-600" />
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div
-                  className={`p-6 rounded-2xl border ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-                >
-                  <h3 className="text-sm font-black uppercase tracking-wider mb-4 text-emerald-500">
-                    Daftar Testimoni
-                  </h3>
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    {testimonials.map((t) => (
-                      <div
-                        key={t.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-dashed border-slate-700/50"
+                      <div>
+                        <h3 className="text-xs font-black uppercase tracking-wide">
+                          {p.title}
+                        </h3>
+                        <span className="text-[10px] font-bold text-blue-500 bg-blue-950/20 px-1.5 py-0.5 rounded">
+                          {p.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleProjEditClick(p)}
+                        className="p-2 bg-blue-600/10 text-blue-500 rounded-lg hover:bg-blue-600/20"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <img
-                            src={renderStorageImage(t.avatar_url)}
-                            alt=""
-                            className="w-10 h-10 object-cover rounded-full bg-slate-800 flex-shrink-0"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src =
-                                "https://placehold.co/100x100/13161c/ffffff?text=Error";
-                            }}
-                          />
-                          <div className="min-w-0">
-                            <span className="text-xs font-bold block truncate">
-                              {t.name}
-                            </span>
-                            <span className="text-[10px] text-slate-400 truncate block">
-                              {t.company}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => startEditTestimonial(t)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded-lg"
-                          >
-                            <Edit3 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTestimonial(t.id)}
-                            disabled={deletingId === t.id}
-                            className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"
-                          >
-                            {deletingId === t.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={14} />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                        <Edit3 size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleProjDelete(p.id)}
+                        className="p-2 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600/20"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* TAB 2: PROJEK FORM */}
-          {activeTab === "projects" && (
+          {activeTab === "add-project" && (
             <div
-              className={`max-w-2xl p-6 md:p-8 rounded-2xl border ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
+              className={`p-6 sm:p-8 rounded-2xl border ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
             >
-              <h3 className="text-base font-black mb-6">
-                {editingProject ? "✏️ Edit Projek" : "🚀 Tambah Projek Baru"}
-              </h3>
-              <form onSubmit={handleProjectSubmit} className="space-y-4">
+              <h2 className="text-lg font-black tracking-tight mb-4">
+                {editingProject
+                  ? "Edit Data Projek Portfolio"
+                  : "Tambah Projek Portfolio Baru"}
+              </h2>
+
+              <form
+                onSubmit={handleProjSubmit}
+                className="flex flex-col gap-4 text-xs font-bold"
+              >
+                <div>
+                  <label className="block mb-1 text-slate-400">
+                    Judul Projek / Nama Kegiatan
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={projForm.title}
+                    onChange={(e) =>
+                      setProjForm({ ...projForm, title: e.target.value })
+                    }
+                    placeholder="Contoh: Website Nouvelle Coffee Shop / Ujikom Jaringan 70 PC"
+                    className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Judul Projek
+                    <label className="block mb-1 text-slate-400">
+                      Kategori Portofolio
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={projForm.title}
-                      onChange={(e) =>
-                        setProjForm({ ...projForm, title: e.target.value })
-                      }
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Kategori
-                    </label>
-                    <input
-                      type="text"
-                      required
+                    <select
                       value={projForm.category}
                       onChange={(e) =>
                         setProjForm({ ...projForm, category: e.target.value })
                       }
-                      placeholder="Web App, Mobile, Backend"
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
+                      className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                    >
+                      <option value="Web Development">Web Development</option>
+                      <option value="Jaringan">Jaringan & Infrastruktur</option>
+                      <option value="Organisasi">Pengalaman Organisasi</option>
+                    </select>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                    Deskripsi Projek
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={projForm.desc}
-                    onChange={(e) =>
-                      setProjForm({ ...projForm, desc: e.target.value })
-                    }
-                    className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                    Upload Foto Projek{" "}
-                    {editingProject && "(Kosongkan jika tidak diganti)"}
-                  </label>
-                  <div
-                    className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
-                  >
-                    <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
-                      <ImageIcon size={24} className="text-slate-500 mb-1" />
-                      <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
-                        {projectFile
-                          ? `Terpilih: ${projectFile.name}`
-                          : "Klik area ini untuk mencari file foto"}
-                      </span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setProjectFile(e.target.files[0])}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Teknologi
+                    <label className="block mb-1 text-slate-400">
+                      Teknologi / Tools
                     </label>
                     <input
                       type="text"
@@ -672,39 +293,30 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setProjForm({ ...projForm, tech: e.target.value })
                       }
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Skor Kecepatan
-                    </label>
-                    <input
-                      type="text"
-                      value={projForm.speed}
-                      onChange={(e) =>
-                        setProjForm({ ...projForm, speed: e.target.value })
-                      }
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Status
-                    </label>
-                    <input
-                      type="text"
-                      value={projForm.status}
-                      onChange={(e) =>
-                        setProjForm({ ...projForm, status: e.target.value })
-                      }
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                      placeholder="Contoh: Laravel, React, MikroTik, Cisco, dll"
+                      className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
                     />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                    URL Website (Opsional)
+                  <label className="block mb-1 text-slate-400">
+                    Tautan Gambar Projek (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={projForm.image_url}
+                    onChange={(e) =>
+                      setProjForm({ ...projForm, image_url: e.target.value })
+                    }
+                    placeholder="Masukkan URL foto dari hosting gambar (Unsplash/Imgur, dll)"
+                    className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-400">
+                    Link Redirect (Google Form / Live Web)
                   </label>
                   <input
                     type="url"
@@ -712,10 +324,42 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setProjForm({ ...projForm, web_url: e.target.value })
                     }
-                    placeholder="https://example.com"
-                    className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                    placeholder="https://forms.gle/... atau https://nouvelle.vercel.app"
+                    className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
                   />
                 </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-400">
+                    Deskripsi Singkat (Tampil di Kartu Utama)
+                  </label>
+                  <textarea
+                    rows="2"
+                    required
+                    value={projForm.desc}
+                    onChange={(e) =>
+                      setProjForm({ ...projForm, desc: e.target.value })
+                    }
+                    placeholder="Ringkasan 1-2 kalimat mengenai apa yang kamu buat..."
+                    className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-400">
+                    Deskripsi Panjang (Detail Kegiatan Saat Kartu Diklik)
+                  </label>
+                  <textarea
+                    rows="5"
+                    value={projForm.long_desc}
+                    onChange={(e) =>
+                      setProjForm({ ...projForm, long_desc: e.target.value })
+                    }
+                    placeholder="Jelaskan secara mendalam tentang proses pengerjaan, tantangan, tugas kamu di organisasi, ataupun konfigurasi spesifik jaringan PC..."
+                    className={`w-full p-3 rounded-xl border outline-none ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
+                  ></textarea>
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
@@ -725,132 +369,20 @@ export default function AdminDashboard({
                     {submitting ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
-                      "Simpan Projek"
+                      "Simpan Ke Portfolio"
                     )}
                   </button>
-                  {editingProject && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingProject(null);
-                        resetProjectForm();
-                        setActiveTab("dashboard");
-                      }}
-                      className="px-5 py-3 bg-slate-700 text-white rounded-xl text-xs font-bold uppercase"
-                    >
-                      Batal
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* TAB 3: TESTIMONI FORM */}
-          {activeTab === "testimonials" && (
-            <div
-              className={`max-w-2xl p-6 md:p-8 rounded-2xl border ${isDarkMode ? "bg-[#13161c] border-slate-800" : "bg-white border-slate-200"}`}
-            >
-              <h3 className="text-base font-black mb-6">
-                {editingTestimonial
-                  ? "✏️ Edit Testimoni"
-                  : "💬 Tambah Testimoni Baru"}
-              </h3>
-              <form onSubmit={handleTestimonialSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Nama Lengkap
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={testiForm.name}
-                      onChange={(e) =>
-                        setTestiForm({ ...testiForm, name: e.target.value })
-                      }
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                      Perusahaan / Instansi
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={testiForm.company}
-                      onChange={(e) =>
-                        setTestiForm({ ...testiForm, company: e.target.value })
-                      }
-                      placeholder="CEO, Perusahaan"
-                      className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                    Upload Foto Profil{" "}
-                    {editingTestimonial && "(Kosongkan jika tidak diganti)"}
-                  </label>
-                  <div
-                    className={`w-full h-32 border border-dashed rounded-xl relative flex flex-col items-center justify-center gap-2 transition-colors ${isDarkMode ? "bg-[#181b22] border-slate-800 hover:bg-[#20242e]" : "bg-slate-50 border-slate-300 hover:bg-slate-100"}`}
-                  >
-                    <div className="flex flex-col items-center pointer-events-none z-0 px-4 text-center">
-                      <ImageIcon size={24} className="text-slate-500 mb-1" />
-                      <span className="text-xs font-semibold text-slate-400 block max-w-full truncate">
-                        {testimonialFile
-                          ? `Terpilih: ${testimonialFile.name}`
-                          : "Klik area ini untuk mencari file foto"}
-                      </span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setTestimonialFile(e.target.files[0])}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-400">
-                    Isi Testimoni
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={testiForm.quote}
-                    onChange={(e) =>
-                      setTestiForm({ ...testiForm, quote: e.target.value })
-                    }
-                    className={`w-full p-3 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-[#181b22] border-slate-800 text-white" : "bg-slate-50 border-slate-300 text-slate-900"}`}
-                  ></textarea>
-                </div>
-                <div className="flex gap-3 pt-2">
                   <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs uppercase flex items-center justify-center gap-2"
+                    type="button"
+                    onClick={() => {
+                      resetProjForm();
+                      setEditingProject(null);
+                      setActiveTab("dashboard");
+                    }}
+                    className="px-5 py-3 bg-slate-700 text-white rounded-xl text-xs font-bold uppercase"
                   >
-                    {submitting ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      "Simpan Testimoni"
-                    )}
+                    Batal
                   </button>
-                  {editingTestimonial && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingTestimonial(null);
-                        resetTestiForm();
-                        setActiveTab("dashboard");
-                      }}
-                      className="px-5 py-3 bg-slate-700 text-white rounded-xl text-xs font-bold uppercase"
-                    >
-                      Batal
-                    </button>
-                  )}
                 </div>
               </form>
             </div>
